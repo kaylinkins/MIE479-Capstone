@@ -1,8 +1,7 @@
 
-# ============================================================
-# CAPSTONE PROJECT: PORTFOLIO DATA COLLECTION AND PREPARATION
-# ============================================================
-#
+# #This file extracts daily price data for three asset classes (equities, fixed income, and cryptocurrency) from Yahoo Finance and Coin Metrics. 
+# It then aligns the three datasets by date, calculates daily simple returns, and saves the clean prices and returns to CSV files.
+
 # Objective:
 # Download daily price data for three asset classes:
 #   1. Equities: S&P 500 Total Return Index
