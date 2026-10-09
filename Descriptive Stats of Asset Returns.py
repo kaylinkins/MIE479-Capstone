@@ -319,7 +319,7 @@ plot_table(
 # Example:
 # A return of 5% changes wealth from $1 to $1.05.
 # A subsequent return of -2% changes it to $1.029.
-wealth = (1 + returns).cumprod()
+wealth = np.log((1 + returns).cumprod())
 
 # Plot all three assets on the same chart.
 fig, ax = plt.subplots()
