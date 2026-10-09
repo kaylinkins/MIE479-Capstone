@@ -1,7 +1,9 @@
 
-# #This file extracts daily price data for three asset classes (equities, fixed income, and cryptocurrency) from Yahoo Finance and Coin Metrics. 
-# It then aligns the three datasets by date, calculates daily simple returns, and saves the clean prices and returns to CSV files.
-
+# ============================================================
+# CAPSTONE PROJECT: PORTFOLIO DATA COLLECTION AND PREPARATION
+# ============================================================
+#
+#This file extracts daily price data for three asset classes (equities, fixed income, and cryptocurrency) from Yahoo Finance and Coin Metrics. It then aligns the three datasets by date, calculates daily simple returns, and saves the clean prices and returns to CSV files.
 # Objective:
 # Download daily price data for three asset classes:
 #   1. Equities: S&P 500 Total Return Index
@@ -36,6 +38,12 @@ import yfinance as yf
 # statistics from time-series data.
 # A pandas DataFrame is essentially a table with rows and columns.
 import pandas as pd
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from pathlib import Path
+from urllib.request import urlopen
+from urllib.parse import urlencode
+import json
 
 
 # ------------------------------------------------------------
@@ -47,10 +55,10 @@ import pandas as pd
 # equity, bond and cryptocurrency market returns.
 start = "2015-01-01"
 
-# Specify the end date for data collection.
-# IMPORTANT: yfinance treats the end date as EXCLUSIVE.
-# This means 2026-10-08 itself will NOT be downloaded.
-end = "2026-10-08"
+# Exclude today's potentially incomplete market observations.
+# Yahoo's end date is exclusive; use Toronto's current date.
+end = datetime.now(ZoneInfo("America/Toronto")).date().isoformat()
+output = Path(__file__).resolve().parent
 
 
 # ------------------------------------------------------------
@@ -135,26 +143,22 @@ bond = bond.rename("Bond")
 # STEP 5: DOWNLOAD BITCOIN DATA
 # ------------------------------------------------------------
 
-# Coin Metrics publishes public CSV files containing
-# historical cryptocurrency metrics.
-#
-# This URL points to the Bitcoin dataset.
-url = (
-    "https://raw.githubusercontent.com/"
-    "coinmetrics/data/master/csv/btc.csv"
-)
-
-# Read the CSV directly from the internet into pandas.
-#
-# usecols tells pandas to read only the columns we need:
-#   "time": the observation date
-#   "PriceUSD": Bitcoin's reference price in U.S. dollars
-#
-# This avoids loading unnecessary cryptocurrency metrics.
-btc_data = pd.read_csv(
-    url,
-    usecols=["time", "PriceUSD"]
-)
+# The GitHub archive can lag behind the live API. Keep the same
+# Coin Metrics PriceUSD series, fetched directly with pagination.
+url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?" + urlencode({
+    "assets": "btc", "metrics": "PriceUSD", "frequency": "1d",
+    "start_time": start, "end_time": end,
+    "page_size": 1000, "paging_from": "start",
+})
+btc_records = []
+while url:
+    with urlopen(url, timeout=60) as response:
+        page = json.load(response)
+    btc_records.extend(page["data"])
+    url = page.get("next_page_url")
+if not btc_records:
+    raise ValueError("No Bitcoin observations were returned by Coin Metrics.")
+btc_data = pd.DataFrame(btc_records)
 
 # Convert the "time" column from text into datetime values.
 #
@@ -186,7 +190,7 @@ btc_data = btc_data.set_index("time")
 #
 # astype(float) ensures that prices are stored as numerical
 # values suitable for calculations.
-btc = btc_data["PriceUSD"].astype(float)
+btc = pd.to_numeric(btc_data["PriceUSD"], errors="coerce")
 
 # Remove timezone information from the Bitcoin index.
 #
@@ -237,7 +241,21 @@ prices.index = prices.index.tz_localize(None)
 # .loc selects rows using the date index.
 # Note that this slice includes its endpoint if present,
 # whereas yfinance's original end date was exclusive.
-prices = prices.loc[start:end]
+prices = prices.sort_index()
+prices = prices.loc[(prices.index >= start) & (prices.index < end)]
+
+# Report coverage BEFORE dropping incomplete rows so the limiting
+# source is visible instead of silently truncating the portfolio.
+coverage = pd.DataFrame({
+    asset: {
+        "First valid date": prices[asset].first_valid_index(),
+        "Last valid date": prices[asset].last_valid_index(),
+        "Observations": prices[asset].count(),
+    }
+    for asset in prices.columns
+}).T
+print("\nSOURCE COVERAGE BEFORE DATE ALIGNMENT:")
+print(coverage.to_string())
 
 # Remove rows containing missing values in ANY column.
 #
@@ -259,6 +277,14 @@ prices = prices.dropna()
 # Confirm that the combined dataset contains observations.
 if prices.empty:
     raise ValueError("No common dates were found for the assets.")
+if not (prices > 0).all().all() or not prices.index.is_unique:
+    raise ValueError("Prices must be positive with unique dates.")
+staleness = (pd.Timestamp(end) - prices.index.max()).days
+if staleness > 7:
+    raise ValueError(
+        f"Latest common date {prices.index.max().date()} is {staleness} days old. "
+        "Check source coverage above. Existing output files were not overwritten."
+    )
 
 
 # ------------------------------------------------------------
@@ -289,7 +315,7 @@ if prices.empty:
 #
 # Because weekend dates were already removed,
 # this incorporates Bitcoin's cumulative weekend movement.
-returns = prices.pct_change()
+returns = prices.pct_change(fill_method=None)
 
 # The first row of returns is NaN because there is no
 # previous observation from which to calculate a return.
@@ -308,7 +334,7 @@ returns = returns.dropna()
 #
 # The file will contain:
 #   Date | Equity | Bond | BTC
-prices.to_csv("portfolio_prices.csv")
+prices.to_csv(output / "portfolio_prices.csv")
 
 # Save the calculated returns to a second CSV file.
 #
@@ -317,7 +343,8 @@ prices.to_csv("portfolio_prices.csv")
 #
 # The file will contain:
 #   Date | Equity Return | Bond Return | BTC Return
-returns.to_csv("portfolio_daily_returns.csv")
+returns.to_csv(output / "portfolio_daily_returns.csv")
+coverage.to_csv(output / "source_coverage.csv")
 
 
 # ------------------------------------------------------------
