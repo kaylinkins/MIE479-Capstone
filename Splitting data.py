@@ -1,108 +1,63 @@
+from pathlib import Path
 
 import pandas as pd
 
-# This code splits our daily portfolio returns dataset
-# (May 2015– May 2026) into three chronological periods:
-#
-# 1. TRAINING:   2015–2018
-# 2. VALIDATION: 2019–2022
-# 3. TESTING:    2023–2026
-#
-# PURPOSE OF EACH DATASET:
-#
-# TRAINING:
-# - Estimate initial model parameters (mean, covariance, etc.).
-# - Construct baseline MVO, risk parity, and CVaR models.
-# - Fit initial Ledoit-Wolf, Black-Litterman, and GARCH models.
-#
-# VALIDATION:
-# - Evaluate preliminary out-of-sample performance.
-# - Compare baseline and enhanced models.
-# - Tune model parameters, portfolio constraints, and MPC settings.
-# - Select and finalize modelling choices.
-#
-# TESTING:
-# - Evaluate finalized models on out-of-sample observations.
-# - Compare single-period and multi-period portfolio performance.
-# - Calculate final performance and downside-risk metrics.
-# - Do not use final testing performance to tune models.
-#
-# IMPORTANT:
-# When performing walk-forward backtesting, models can be
-# re-estimated at each decision date using all permitted
-# historical observations available up to that date.
-# ============================================================
+# Approximate chronological 60% / 20% / 20% split; never shuffle.
+# Round the target dates to the nearest calendar-month boundary.
+# Training: estimate initial portfolio and model parameters.
+# Validation: select models, constraints, and hyperparameters.
+# Testing: evaluate finalized models; do not tune using test performance.
+# Walk-forward refitting uses only history available at each decision date.
 
-
-# ------------------------------------------------------------
-# STEP 1: LOAD THE RETURN DATASET
-# ------------------------------------------------------------
-
-# Load daily equity, bond, and Bitcoin returns.
-# The first column contains dates, which become the index.
-# parse_dates=True converts dates into datetime objects.
+# Resolve files relative to this script, regardless of working directory.
+output = Path(__file__).resolve().parent
 returns = pd.read_csv(
-    "portfolio_daily_returns.csv",
+    output / "portfolio_daily_returns.csv",
     index_col=0,
-    parse_dates=True
-)
+    parse_dates=True,
+).sort_index()
 
-# Sort observations from oldest to newest.
-returns = returns.sort_index()
+if returns.index.hasnans or not returns.index.is_unique:
+    raise ValueError("Return dates must be valid and unique.")
+if returns.empty or returns.isna().any().any():
+    raise ValueError("Returns must be nonempty without missing values.")
 
-
-# ------------------------------------------------------------
-# STEP 2: SPLIT THE DATASET CHRONOLOGICALLY
-# ------------------------------------------------------------
-
-# TRAINING DATA: January 2015 – December 2018
-# Used for initial parameter estimation and model fitting.
-train = returns.loc["2015-01-01":"2018-12-31"]
-
-
-# VALIDATION DATA: January 2019 – December 2022
-# Used for model development, comparison, and tuning.
-validation = returns.loc["2019-01-01":"2022-12-31"]
+# Locate the original cumulative 60% and 80% boundaries by row count,
+# then round each first held-out date to the nearest month start.
+# A tie selects the earlier month start. No month crosses a split.
+# Dates adjust automatically when the source dataset is refreshed.
+total = len(returns)
+if total < 5:
+    raise ValueError("Too few observations for three nonempty datasets.")
 
 
-# FINAL TESTING DATA: January 2023 – December 2026
-# Used only for final out-of-sample performance evaluation.
-# The dataset ends at the latest available observation.
-test = returns.loc["2023-01-01":"2026-12-31"]
+def nearest_month_start(date):
+    earlier = date.to_period("M").start_time
+    later = earlier + pd.offsets.MonthBegin(1)
+    return earlier if date - earlier <= later - date else later
 
 
-# ------------------------------------------------------------
-# STEP 3: VERIFY THE SPLIT
-# ------------------------------------------------------------
+validation_start = nearest_month_start(returns.index[total * 60 // 100])
+test_start = nearest_month_start(returns.index[total * 80 // 100])
+train = returns.loc[returns.index < validation_start].copy()
+validation = returns.loc[
+    (returns.index >= validation_start) & (returns.index < test_start)
+].copy()
+test = returns.loc[returns.index >= test_start].copy()
 
-# Print the number of daily observations in each period.
-print("Training observations:", len(train))
-print("Validation observations:", len(validation))
-print("Testing observations:", len(test))
+datasets = {"train": train, "validation": validation, "test": test}
+if any(frame.empty for frame in datasets.values()):
+    raise ValueError("Too few observations for three nonempty datasets.")
 
+print(f"Total return observations: {total}")
+print("Approximate 60% / 20% / 20% split (nearest calendar-month boundaries)")
+print(f"Validation starts: {validation_start.date()}; testing starts: {test_start.date()}")
+for name, frame in datasets.items():
+    print(
+        f"{name.capitalize()}: {len(frame):,} observations "
+        f"({len(frame) / total:.2%}), "
+        f"{frame.index.min().date()} to {frame.index.max().date()}"
+    )
+    frame.to_csv(output / f"portfolio_{name}.csv")
 
-# Print the actual start and end dates for each dataset.
-print("\nTRAINING PERIOD:")
-print(train.index.min(), "to", train.index.max())
-
-print("\nVALIDATION PERIOD:")
-print(validation.index.min(), "to", validation.index.max())
-
-print("\nFINAL TESTING PERIOD:")
-print(test.index.min(), "to", test.index.max())
-
-
-# ------------------------------------------------------------
-# STEP 4: SAVE EACH DATASET
-# ------------------------------------------------------------
-
-# Save training observations for initial model fitting.
-train.to_csv("portfolio_train.csv")
-
-# Save validation observations for model development.
-validation.to_csv("portfolio_validation.csv")
-
-# Save final testing observations for final evaluation.
-test.to_csv("portfolio_test.csv")
-
-print("\nTraining, validation, and testing files saved.")
+print(f"\nTraining, validation, and testing files saved to: {output}")
