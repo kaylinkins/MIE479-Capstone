@@ -305,9 +305,8 @@ weights_df.to_csv(output / "walk_forward_weights.csv", index=False)
 oos_returns.to_csv(output / "walk_forward_returns.csv")
 
 
-# ------------------------------------------------------------
 # STEP 5: PRINT
-# ------------------------------------------------------------
+
 
 pd.set_option("display.width", 220)
 pd.set_option("display.max_columns", None)
