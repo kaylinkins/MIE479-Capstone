@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linprog
 from scipy.sparse import csr_matrix, hstack, identity, vstack
+from portfolio_optimization import max_sharpe
 
 
 # SETTINGS
@@ -13,29 +14,10 @@ TRADING_DAYS = 252
 BTC_CAP = 0.20        # max weight in BTC; set to None for no cap
 N_FRONTIER = 6        # number of points on the CVaR-return frontier
 
-output = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "Data" / "datasets"
+output = PROJECT_ROOT / "outputs" / "baseline"
 
-
-
-# STEP 1: LOAD DATA
-
-
-train = pd.read_csv(
-    output / "portfolio_train.csv", index_col=0, parse_dates=True
-).sort_index()
-validation = pd.read_csv(
-    output / "portfolio_validation.csv", index_col=0, parse_dates=True
-).sort_index()
-
-assets = list(train.columns)          # Equity, Bond, BTC
-n_assets = len(assets)
-R_train = train.values
-R_val = validation[assets].values
-
-# Upper bound on each weight (long-only, fully invested).
-upper = [1.0] * n_assets
-if BTC_CAP is not None and "BTC" in assets:
-    upper[assets.index("BTC")] = BTC_CAP
 
 
 # STEP 2: HELPER FUNCTIONS
@@ -47,7 +29,7 @@ def var_cvar(weights, returns, alpha=ALPHA):
     return -cutoff, -port[port <= cutoff].mean()
 
 
-def min_cvar(returns, alpha=ALPHA, upper=None, min_return=None):
+def min_cvar(returns, alpha=ALPHA, upper=None, min_return=None, match_return=None):
     """
     Rockafellar-Uryasev LP.
 
@@ -61,8 +43,11 @@ def min_cvar(returns, alpha=ALPHA, upper=None, min_return=None):
                    mean_return . w >= min_return   (optional)
 
     At the optimum, zeta is the VaR and the objective value is the CVaR.
+    match_return enforces an exact expected return instead of a minimum.
     """
     N, n = returns.shape
+    if min_return is not None and match_return is not None:
+        raise ValueError("Specify either min_return or match_return")
     upper = upper or [1.0] * n
 
     # Objective: zeta has coefficient 1, each u_i has 1 / ((1 - alpha) N).
@@ -84,6 +69,10 @@ def min_cvar(returns, alpha=ALPHA, upper=None, min_return=None):
     # Weights sum to 1.
     A_eq = csr_matrix(np.concatenate([np.ones(n), [0.0], np.zeros(N)]))
     b_eq = [1.0]
+    if match_return is not None:
+        row = np.concatenate([returns.mean(axis=0), [0.0], np.zeros(N)])
+        A_eq = vstack([A_eq, csr_matrix(row)], format="csr")
+        b_eq.append(float(match_return))
 
     bounds = [(0.0, u) for u in upper] + [(None, None)] + [(0.0, None)] * N
 
@@ -103,63 +92,95 @@ def max_feasible_return(returns, upper):
 
 
 
-# STEP 3: BUILD PORTFOLIOS
+def main():
+    output.mkdir(parents=True, exist_ok=True)
+    # STEP 1: LOAD DATA
 
 
-portfolios = {}
+    train = pd.read_csv(
+        DATA_DIR / "portfolio_train.csv", index_col=0, parse_dates=True
+    ).sort_index()
+    validation = pd.read_csv(
+        DATA_DIR / "portfolio_validation.csv", index_col=0, parse_dates=True
+    ).sort_index()
 
-# Minimum-CVaR portfolio (the "main" portfolio, in its simplest form).
-w_min = min_cvar(R_train, upper=upper)
-portfolios["Min CVaR"] = w_min
+    assets = list(train.columns)          # Equity, Bond, BTC
+    n_assets = len(assets)
+    R_train = train.values
+    R_val = validation[assets].values
 
-# Points along the frontier: minimum CVaR for increasing required return.
-mu_train = R_train.mean(axis=0)
-low = float(mu_train @ w_min)
-high = max_feasible_return(R_train, upper) * 0.98   # stay just inside feasibility
-for target in np.linspace(low, high, N_FRONTIER)[1:]:
-    w = min_cvar(R_train, upper=upper, min_return=target)
-    portfolios[f"Min CVaR, return >= {target * TRADING_DAYS:.1%}/yr"] = w
-
-# Simple benchmarks for reference.
-portfolios["Equal weight"] = np.full(n_assets, 1.0 / n_assets)
-if {"Equity", "Bond"} <= set(assets):
-    w = np.zeros(n_assets)
-    w[assets.index("Equity")], w[assets.index("Bond")] = 0.6, 0.4
-    portfolios["60/40 equity/bond"] = w
+    # Upper bound on each weight (long-only, fully invested).
+    upper = [1.0] * n_assets
+    if BTC_CAP is not None and "BTC" in assets:
+        upper[assets.index("BTC")] = BTC_CAP
 
 
+    # STEP 3: BUILD PORTFOLIOS
 
-# STEP 4: EVALUATE ON TRAIN AND VALIDATION
+
+    portfolios = {}
+
+    # Minimum-CVaR portfolio (the "main" portfolio, in its simplest form).
+    w_min = min_cvar(R_train, upper=upper)
+    portfolios["Min CVaR"] = w_min
+
+    # Points along the frontier: minimum CVaR for increasing required return.
+    mu_train = R_train.mean(axis=0)
+    low = float(mu_train @ w_min)
+    high = max_feasible_return(R_train, upper) * 0.98   # stay just inside feasibility
+    for target in np.linspace(low, high, N_FRONTIER):
+        w = min_cvar(R_train, upper=upper, min_return=target)
+        portfolios[f"Min CVaR, return >= {target * TRADING_DAYS:.1%}/yr"] = w
+
+    sharpe_weights = max_sharpe(R_train, upper=upper)
+    matched_target = float(mu_train @ sharpe_weights)
+    portfolios["Max Sharpe"] = sharpe_weights
+    portfolios["Matched Return CVaR"] = min_cvar(R_train, upper=upper, match_return=matched_target)
+
+    # Simple benchmarks for reference.
+    portfolios["Equal weight"] = np.full(n_assets, 1.0 / n_assets)
+    if {"Equity", "Bond"} <= set(assets):
+        w = np.zeros(n_assets)
+        w[assets.index("Equity")], w[assets.index("Bond")] = 0.6, 0.4
+        portfolios["60/40 equity/bond"] = w
 
 
-rows = []
-for name, w in portfolios.items():
-    var_tr, cvar_tr = var_cvar(w, R_train)
-    var_va, cvar_va = var_cvar(w, R_val)
-    row = {"Portfolio": name}
-    row.update({a: w[i] for i, a in enumerate(assets)})
-    row.update({
-        "Train Ann. Return": (R_train @ w).mean() * TRADING_DAYS,
-        "Train 95% VaR (daily)": var_tr,
-        "Train 95% CVaR (daily)": cvar_tr,
-        "Val Ann. Return": (R_val @ w).mean() * TRADING_DAYS,
-        "Val 95% VaR (daily)": var_va,
-        "Val 95% CVaR (daily)": cvar_va,
-    })
-    rows.append(row)
 
-results = pd.DataFrame(rows).set_index("Portfolio")
-results.to_csv(output / "cvar_frontier.csv")
+    # STEP 4: EVALUATE ON TRAIN AND VALIDATION
 
-pd.set_option("display.width", 200)
-pd.set_option("display.max_columns", None)
-print(f"Train: {len(R_train)} days | Validation: {len(R_val)} days | "
-      f"BTC cap: {BTC_CAP}")
-print("\nWEIGHTS:")
-print(results[assets].round(3).to_string())
-print("\nRISK AND RETURN (CVaR/VaR are daily losses, in %):")
-risk = results.drop(columns=assets).copy()
-for col in risk.columns:
-    risk[col] = (risk[col] * 100).round(2)
-print(risk.to_string())
-print("\nSaved: cvar_frontier.csv")
+
+    rows = []
+    for name, w in portfolios.items():
+        var_tr, cvar_tr = var_cvar(w, R_train)
+        var_va, cvar_va = var_cvar(w, R_val)
+        row = {"Portfolio": name}
+        row.update({a: w[i] for i, a in enumerate(assets)})
+        row.update({
+            "Train Ann. Return": (R_train @ w).mean() * TRADING_DAYS,
+            "Train 95% VaR (daily)": var_tr,
+            "Train 95% CVaR (daily)": cvar_tr,
+            "Val Ann. Return": (R_val @ w).mean() * TRADING_DAYS,
+            "Val 95% VaR (daily)": var_va,
+            "Val 95% CVaR (daily)": cvar_va,
+        })
+        rows.append(row)
+
+    results = pd.DataFrame(rows).set_index("Portfolio")
+    results.to_csv(output / "cvar_frontier.csv")
+
+    pd.set_option("display.width", 200)
+    pd.set_option("display.max_columns", None)
+    print(f"Train: {len(R_train)} days | Validation: {len(R_val)} days | "
+          f"BTC cap: {BTC_CAP}")
+    print("\nWEIGHTS:")
+    print(results[assets].round(3).to_string())
+    print("\nRISK AND RETURN (CVaR/VaR are daily losses, in %):")
+    risk = results.drop(columns=assets).copy()
+    for col in risk.columns:
+        risk[col] = (risk[col] * 100).round(2)
+    print(risk.to_string())
+    print("\nSaved: cvar_frontier.csv")
+
+
+if __name__ == "__main__":
+    main()
