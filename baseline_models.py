@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+from portfolio_optimization import max_sharpe as optimize_max_sharpe
 
 
 # SETTINGS
@@ -14,7 +15,10 @@ TRADING_DAYS = 252
 RISK_FREE = 0.0       # annual risk-free rate used in the Sharpe ratio
 BTC_CAP = 0.20        # keep the same as cvar_optimization.py; None for no cap
 
-output = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "Data" / "datasets"
+output = PROJECT_ROOT / "outputs" / "baseline"
+output.mkdir(parents=True, exist_ok=True)
 
 
 
@@ -22,10 +26,10 @@ output = Path(__file__).resolve().parent
 
 
 train = pd.read_csv(
-    output / "portfolio_train.csv", index_col=0, parse_dates=True
+    DATA_DIR / "portfolio_train.csv", index_col=0, parse_dates=True
 ).sort_index()
 validation = pd.read_csv(
-    output / "portfolio_validation.csv", index_col=0, parse_dates=True
+    DATA_DIR / "portfolio_validation.csv", index_col=0, parse_dates=True
 ).sort_index()
 
 assets = list(train.columns)
@@ -57,11 +61,7 @@ def min_variance():
 
 def max_sharpe():
     """Highest (return - risk-free) / volatility."""
-    def neg_sharpe(w):
-        return -(w @ mu - RISK_FREE) / np.sqrt(w @ cov @ w)
-    res = minimize(neg_sharpe, w0, bounds=bounds,
-                   constraints=[sum_to_one], method="SLSQP")
-    return res.x
+    return optimize_max_sharpe(R_train, upper=upper, risk_free=RISK_FREE/TRADING_DAYS)
 
 
 def risk_parity():
@@ -98,6 +98,7 @@ cvar_file = output / "cvar_frontier.csv"
 if not cvar_file.exists():
     raise FileNotFoundError("Run cvar_optimization.py first (it creates cvar_frontier.csv).")
 portfolios["Min CVaR"] = pd.read_csv(cvar_file, index_col=0).loc["Min CVaR", assets].values
+portfolios["Matched Return CVaR"] = pd.read_csv(cvar_file, index_col=0).loc["Matched Return CVaR", assets].values
 
 portfolios["Equal weight"] = np.full(n, 1.0 / n)
 if {"Equity", "Bond"} <= set(assets):
