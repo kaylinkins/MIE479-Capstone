@@ -1,0 +1,6 @@
+# Direct scientific dependencies used for the verified validation run.
+# Tested with Python 3.10.7. No CVXPY, OSQP or network data download is needed.
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+arch==8.0.0

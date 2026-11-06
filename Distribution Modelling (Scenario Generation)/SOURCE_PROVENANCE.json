@@ -1,0 +1,14 @@
+{
+  "purpose": "Consolidation provenance only; no runtime dependency on these original paths.",
+  "original_source_sha256": {
+    "Portfolio Optimization/multiperiod_cvar.py": "463640a70d0eff9e0f6bdce67aab602229f9608a91983b7eb09616c3b6d1c48e",
+    "Portfolio Optimization/cvar_constraint_generation.py": "574a4f0b44d4b6840dc4d40ebb70a21f08366dc22d8e4c47e66b66711b1fa73d",
+    "Portfolio Optimization/original_matched_cvar.py": "cd82e3ba0209510fc343ee6cdd0a19214549e7e4be1d2fb7bd047106cac39ec7",
+    "Volatility Modelling/models/multiperiod_forecasts.py": "a140a52b04c577018ae4a2ba15c19dc435ad019ce81395a69919841427822745",
+    "Volatility Modelling/archive/models/DCC-GARCH Gaussian.py": "a9a8701fbfcf996e166697ae6b68008f0c6a178930c070802ce4f18b47bfc00a",
+    "Volatility Modelling/archive/models/DCC-GARCH EWMA GARCH.py": "2232f96b8c12d2bcd28cae12ac825aca72aa02899ebbe78e581873ddd517aacd",
+    "Volatility Modelling/models/original_scenario_forecasts.py": "8728ce55c531ca199b1e9cea2b13e4ac919128d81059300baa8721fb020274bf",
+    "Volatility Modelling/models/original_four_multiperiod.py": "969bb3f31d2eaba97f80ffa82d9a72877016a35e1b65edeb7cce58e7670482c0",
+    "Baseline Models/portfolio_optimization.py": "03fd59142d2db3da0b2b407dad9adee0f3ede4f73339c0007aa29a8b1fb3482c"
+  }
+}
