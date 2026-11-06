@@ -8,7 +8,7 @@
 #   chosen by the multi-period planners:
 #     Multi_Period_Baselines.py   MVO, min variance, max Sharpe, risk parity,
 #                                 equal weight, 60/40
-#     Multi_Period_CVaR.py        CVaR (teammate's planner), for comparison
+#     multiperiod_cvar.py        CVaR (teammate's planner), for comparison
 #   Each month it builds a forecast bundle from the five years before the
 #   month, plans H months ahead, trades to the first planned weights, and
 #   lets them drift through the month (execute_first_period).
@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 
 import Multi_Period_Baselines as mb
-import Multi_Period_CVaR as mc
+import multiperiod_cvar as mc
 
 # ------------------------------------------------------------
 # SETTINGS
