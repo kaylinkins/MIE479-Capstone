@@ -8,7 +8,7 @@
 #   chosen by the multi-period planners:
 #     Multi_Period_Baselines.py   MVO, min variance, max Sharpe, risk parity,
 #                                 equal weight, 60/40
-#     multiperiod_cvar.py        Matched-return minimum CVaR plus trading costs
+#     CVaR_MPO/cvar_mpo.py       Matched-return minimum CVaR plus trading costs
 #   Each month it builds a forecast bundle from the five years before the
 #   month, plans H months ahead, trades to the first planned weights, and
 #   lets them drift through the month (execute_first_period).
@@ -34,9 +34,13 @@ import time
 import numpy as np
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+_CVAR_DIRECTORY = str(PROJECT_ROOT / "CVaR_MPO")
+if _CVAR_DIRECTORY not in sys.path:
+    sys.path.insert(0, _CVAR_DIRECTORY)
+
 import Multi_Period_Baselines as mb
-import multiperiod_cvar as mc
-import original_matched_cvar as original_cvar
+import cvar_mpo as mc
 
 # ------------------------------------------------------------
 # SETTINGS
@@ -55,7 +59,6 @@ CVAR_MODEL = "CVaR (matched return)"
 
 MODELS = list(mb.BASELINES) + ([CVAR_MODEL] if INCLUDE_CVAR else [])
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 output = Path(__file__).resolve().parent
 
 
@@ -101,10 +104,10 @@ def make_bundle(history, days, horizon):
 
 def plan_for(model, bundle, w_prev, horizon):
     if model == CVAR_MODEL:
-        # Restore the single-period reference: native scenario means and the
+        # Preserve the single-period reference: native scenario means and the
         # original maximum-Sharpe target minus 1e-6 per holding day. Keep the
         # existing CVaR-plus-cost planner and exact monthly execution unchanged.
-        plan = original_cvar.optimize_original_matched_plan(
+        plan = mc.optimize_matched_cvar(
             bundle.returns['historical'][:, :horizon], w_prev,
             [len(period) for period in bundle.periods[:horizon]],
             native_layout='F',
@@ -215,7 +218,7 @@ def main():
     metadata = {
         "forecast_distribution": "overlapping historical monthly returns repeated across stages",
         "expected_returns": "native historical monthly scenario means; no Black-Litterman or Hybrid DCC inputs",
-        "cvar_model": CVAR_MODEL, "cvar_function": "original_matched_cvar.optimize_original_matched_plan",
+        "cvar_model": CVAR_MODEL, "cvar_function": "cvar_mpo.optimize_matched_cvar",
         "cvar_return_reward": 0., "cvar_risk_aversion": CVAR_RISK_AVERSION,
         "cvar_return_floors": "original maximum-Sharpe expected return from native scenario means minus 1e-6 per holding day; same caps",
         "alpha": .95, "btc_cap": BTC_CAP, "cost_rate": COST_RATE,
