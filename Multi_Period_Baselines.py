@@ -1,5 +1,5 @@
 """One convex mean-variance/trading-cost planner for H=1 and H>1, covering the
-baseline models. Companion to Multi_Period_CVaR.py, with the same structure.
+baseline models. Shares execution accounting with CVaR_MPO/cvar_mpo.py.
 
 The objective is a sum of stage expected returns minus stage variance penalties
 and proportional trade-cost estimates. Planned weights are a schedule; they do
@@ -26,19 +26,35 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 import argparse
+from pathlib import Path
+import sys
 
 import numpy as np
-import cvxpy as cp
-from scipy.optimize import minimize
+import importlib
+from scipy.optimize import brentq, minimize
 
-from Multi_Period_CVaR import (ASSETS, DEFAULT_UPPER, _costs, _limits, _portfolio,
-                               execute_first_period, loss_var_cvar, self_financing_fee)
+# Resolve the consolidated library relative to this file, including direct runs
+# from the Portfolio Optimization folder. No backtest runner is imported.
+_CVAR_DIRECTORY = str(Path(__file__).resolve().parents[1] / "CVaR_MPO")
+if _CVAR_DIRECTORY not in sys.path:
+    sys.path.insert(0, _CVAR_DIRECTORY)
+from cvar_mpo import (ASSETS, DEFAULT_UPPER, _costs, _limits, _portfolio,
+                      execute_first_period, loss_var_cvar, self_financing_fee)
 
 # Default risk aversion multiplies the variance directly (as risk_aversion
 # multiplies CVaR in the CVaR planner). 1.25 = lambda/2 with lambda = 2.5,
 # the risk-aversion coefficient used in the Black-Litterman prior.
 DEFAULT_RISK_AVERSION = 1.25
 _SCALE = 100.         # objective scaling for the solver only; reported values are unscaled
+
+def _load_cvxpy():
+    """Import the solver dependency when a mean-variance plan is requested."""
+    try:
+        return importlib.import_module("cvxpy")
+    except ImportError as exc:
+        raise ImportError(
+            "Mean-variance planning requires cvxpy; install it with `pip install cvxpy`."
+        ) from exc
 
 __all__ = ["MVPlan", "solve_mv_plan", "optimize_forecast", "moments_from_scenarios",
            "max_sharpe_weights", "risk_parity_weights", "BASELINES",
@@ -71,6 +87,30 @@ def _targets(values, horizon, caps):
         if (row > caps+1e-10).any():
             raise ValueError(f"Target weights in planning period {k} violate the allocation caps")
     return values
+
+
+def _clean_weights(weights, caps):
+    """Remove numerical solver noise without renormalizing beyond a cap.
+
+    Project onto the capped simplex: clipping and then dividing by the sum
+    can raise a BTC allocation above its cap. The caller still checks that
+    this numerical cleanup has not materially moved the solver solution.
+    """
+    values = np.asarray(weights, float)
+    if caps.sum() < 1.:
+        # Input validation permits a tiny floating-point shortfall from one.
+        return caps.copy()
+    shift = brentq(lambda t: np.clip(values-t, 0., caps).sum()-1.,
+                   float(np.min(values-caps)), float(np.max(values)), xtol=5e-16)
+    clean = np.clip(values-shift, 0., caps)
+    residual = 1.-clean.sum()
+    if residual > 0.:
+        index = int(np.argmax(caps-clean))
+        clean[index] += min(residual, caps[index]-clean[index])
+    elif residual < 0.:
+        index = int(np.argmax(clean))
+        clean[index] += max(residual, -clean[index])
+    return clean
 
 
 @dataclass(frozen=True)
@@ -112,6 +152,7 @@ def solve_mv_plan(covariances, pretrade_weights, *, expected_returns=None,
     limits on volatility (or active volatility with a target). Terminal
     weights are optional and default to no liquidation constraint.
     """
+    cp = _load_cvxpy()
     prior = _portfolio(pretrade_weights, "Pretrade weights", allow_cash=True)
     costs = _costs(cost_rate)
     caps = np.asarray(upper, float)
@@ -183,9 +224,7 @@ def solve_mv_plan(covariances, pretrade_weights, *, expected_returns=None,
     if problem.status != "optimal":
         raise RuntimeError(f"Mean-variance planning failed: {problem.status}")
 
-    weights = np.asarray(W.value)
-    weights = np.clip(weights, 0., caps)           # remove solver noise, as clean() in bl_core
-    weights /= weights.sum(axis=1, keepdims=True)
+    weights = np.asarray([_clean_weights(row, caps) for row in W.value])
     trades = np.diff(np.vstack([prior, weights]), axis=0)
     expected = (means*weights).sum(axis=1)
     volatility = np.sqrt([w @ S @ w for w, S in zip(weights, covs)])
@@ -194,6 +233,7 @@ def solve_mv_plan(covariances, pretrade_weights, *, expected_returns=None,
     stage_risk = (active if tracked is not None else volatility)**2
     estimated_costs = (np.abs(trades)*costs).sum(axis=1)
     if (not np.allclose(weights.sum(axis=1), 1., atol=1e-7, rtol=0) or
+            (weights < 0.).any() or (weights > caps).any() or
             not np.allclose(weights, W.value, atol=1e-6, rtol=0)):
         raise AssertionError("Solution violates the weight constraints beyond solver tolerance")
     if targets is not None and (expected < targets-2e-7).any():
@@ -231,8 +271,7 @@ def max_sharpe_weights(mean, covariance, upper=DEFAULT_UPPER, risk_free=0.):
                       constraints=[{"type": "eq", "fun": lambda w: w.sum()-1.}], method="SLSQP")
     if not solved.success:
         raise RuntimeError(f"Max-Sharpe optimization failed: {solved.message}")
-    weights = np.clip(solved.x, 0., caps)
-    return weights/weights.sum()
+    return _clean_weights(solved.x, caps)
 
 
 def risk_parity_weights(covariance):
