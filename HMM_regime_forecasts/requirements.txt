@@ -1,0 +1,6 @@
+numpy<1.27
+pandas
+scipy
+hmmlearn
+exchange-calendars
+jumpmodels==0.1.1
