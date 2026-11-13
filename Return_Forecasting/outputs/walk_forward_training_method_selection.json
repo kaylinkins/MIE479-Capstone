@@ -1,0 +1,101 @@
+{
+  "rebalance_schedule": "First XNYS session of each validation month present in the validation input",
+  "method_selection": "Selected using training-only pseudo-out-of-sample forecasts; methods are held fixed through validation",
+  "forecast_information": "Each forecast uses monthly history strictly before its rebalance month",
+  "monthly_return_convention": "One-month compounded simple returns, decimals",
+  "training_base_static_methods_by_asset": {
+    "Equity": "expanding_mean",
+    "Bond": "rolling_mean_10y",
+    "BTC": "expanding_mean"
+  },
+  "selected_by_asset": {
+    "Equity": {
+      "method": "expanding_mean",
+      "status": "selected_using_training_only_pseudo_oos_rmse",
+      "training_static_base_method": "expanding_mean",
+      "training_combined_rmse_h1_to_h3": 0.04200352826770788,
+      "training_rmse_by_horizon": {
+        "1": 0.04204561133500406,
+        "2": 0.04203078127086722,
+        "3": 0.041934104903225265
+      },
+      "training_n_scored_by_horizon": {
+        "1": 84,
+        "2": 84,
+        "3": 83
+      },
+      "blend_weight_on_base_method": null
+    },
+    "Bond": {
+      "method": "rolling_mean_10y",
+      "status": "selected_using_training_only_pseudo_oos_rmse",
+      "training_static_base_method": "rolling_mean_10y",
+      "training_combined_rmse_h1_to_h3": 0.009466435165751113,
+      "training_rmse_by_horizon": {
+        "1": 0.00947039661382618,
+        "2": 0.00947585895787932,
+        "3": 0.00945303492161728
+      },
+      "training_n_scored_by_horizon": {
+        "1": 84,
+        "2": 84,
+        "3": 83
+      },
+      "blend_weight_on_base_method": null
+    },
+    "BTC": {
+      "method": "expanding_mean",
+      "status": "selected_using_training_only_pseudo_oos_rmse",
+      "training_static_base_method": "expanding_mean",
+      "training_combined_rmse_h1_to_h3": 0.2539795222909535,
+      "training_rmse_by_horizon": {
+        "1": 0.25179203082359264,
+        "2": 0.25407940022043923,
+        "3": 0.25604926249996446
+      },
+      "training_n_scored_by_horizon": {
+        "1": 72,
+        "2": 71,
+        "3": 70
+      },
+      "blend_weight_on_base_method": null
+    }
+  },
+  "forecast_horizons_months": [
+    1,
+    2,
+    3
+  ],
+  "multi_horizon_file": "walk_forward_validation_expected_returns_h1_h3.csv",
+  "validation_rebalance_dates": [
+    "2022-02-01",
+    "2022-03-01",
+    "2022-04-01",
+    "2022-05-02",
+    "2022-06-01",
+    "2022-07-01",
+    "2022-08-01",
+    "2022-09-01",
+    "2022-10-03",
+    "2022-11-01",
+    "2022-12-01",
+    "2023-01-03",
+    "2023-02-01",
+    "2023-03-01",
+    "2023-04-03",
+    "2023-05-01",
+    "2023-06-01",
+    "2023-07-03",
+    "2023-08-01",
+    "2023-09-01",
+    "2023-10-02",
+    "2023-11-01",
+    "2023-12-01",
+    "2024-01-02",
+    "2024-02-01",
+    "2024-03-01",
+    "2024-04-01",
+    "2024-05-01"
+  ],
+  "warning": "The candidate methods and 50/50 shrinkage idea were explored during prior model development. This is not a fresh independent holdout; portfolio_test.csv was not read."
+}

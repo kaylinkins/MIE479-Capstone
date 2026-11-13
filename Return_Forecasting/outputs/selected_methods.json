@@ -1,0 +1,115 @@
+{
+  "primary_selection_metric": "sqrt of the equally weighted average of MSE for horizons 1, 2 and 3",
+  "minimum_complete_validation_months": 12,
+  "monthly_return_convention": "compounded simple returns, decimals; static forecasts repeated across months 1-3",
+  "oos_snr_definition": "RMS(forecast returns) / RMSE(forecast errors)",
+  "selected_by_asset": {
+    "Equity": {
+      "method": "reg_ar1_expanding",
+      "status": "selected_by_combined_horizons_1_to_3_validation_rmse",
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.0534250419727401,
+        "2": 0.05360794194189378,
+        "3": 0.054560546836945396
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.05386681049954294,
+      "combined_rmse_skill_vs_expanding": 0.0010534471326878458
+    },
+    "Bond": {
+      "method": "rolling_mean_10y",
+      "status": "selected_by_combined_horizons_1_to_3_validation_rmse",
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.024221445118311345,
+        "2": 0.024525016839441863,
+        "3": 0.024263971648468823
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.024337181257984487,
+      "combined_rmse_skill_vs_expanding": 0.006068323358187966
+    },
+    "BTC": {
+      "method": "selected_shrinkage_50",
+      "status": "selected_after_validation_shrinkage_comparison",
+      "base_method": "rolling_mean_1y",
+      "blend_weight_on_base_method": 0.5,
+      "blend_weight_on_expanding_mean": 0.5,
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.17976179713994575,
+        "2": 0.18206160416454492,
+        "3": 0.18734363463642562
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.18308319498772227,
+      "combined_rmse_skill_vs_previous_method": 0.014688133658365854,
+      "combined_rmse_skill_vs_expanding_mean": 0.035606524991227184
+    }
+  },
+  "base_static_selection_by_asset": {
+    "Equity": {
+      "method": "reg_ar1_expanding",
+      "status": "selected_by_combined_horizons_1_to_3_validation_rmse",
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.0534250419727401,
+        "2": 0.05360794194189378,
+        "3": 0.054560546836945396
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.05386681049954294,
+      "combined_rmse_skill_vs_expanding": 0.0010534471326878458
+    },
+    "Bond": {
+      "method": "rolling_mean_10y",
+      "status": "selected_by_combined_horizons_1_to_3_validation_rmse",
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.024221445118311345,
+        "2": 0.024525016839441863,
+        "3": 0.024263971648468823
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.024337181257984487,
+      "combined_rmse_skill_vs_expanding": 0.006068323358187966
+    },
+    "BTC": {
+      "method": "rolling_mean_1y",
+      "status": "selected_by_combined_horizons_1_to_3_validation_rmse",
+      "n_validation_origins_by_horizon": {
+        "1": 28,
+        "2": 27,
+        "3": 26
+      },
+      "validation_rmse_by_horizon": {
+        "1": 0.18256448822493224,
+        "2": 0.18390506315496444,
+        "3": 0.19086098599535495
+      },
+      "combined_validation_rmse_horizons_1_to_3": 0.18581243283661256,
+      "combined_rmse_skill_vs_expanding": 0.02123022369610683
+    }
+  },
+  "warning": "Validation-selected forecasts are post-selection diagnostics. Do not describe their validation portfolio performance as an unbiased holdout result. portfolio_test.csv was not read.",
+  "method_selection_cutoff": "2024-05-31",
+  "one_month_optimizer_rebalance_dates": [
+    "2024-06-03"
+  ]
+}

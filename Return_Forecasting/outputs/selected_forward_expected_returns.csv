@@ -1,0 +1,4 @@
+rebalance_date,information_date,month_ahead,forecast_month,Equity,Bond,BTC,method_Equity,method_Bond,method_BTC
+2024-06-03,2024-05-31,1,2024-06,0.008866460304030706,0.001124640118552416,0.08214694263848646,reg_ar1_expanding,rolling_mean_10y,selected_shrinkage_50
+2024-06-03,2024-05-31,2,2024-07,0.008866460304030706,0.001124640118552416,0.08214694263848646,reg_ar1_expanding,rolling_mean_10y,selected_shrinkage_50
+2024-06-03,2024-05-31,3,2024-08,0.008866460304030706,0.001124640118552416,0.08214694263848646,reg_ar1_expanding,rolling_mean_10y,selected_shrinkage_50
