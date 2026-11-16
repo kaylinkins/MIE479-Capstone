@@ -1,7 +1,0 @@
-ewma_lambda,estimator,n_common_training_forecasts,mean_training_multivariate_gaussian_nll,mean_training_mahalanobis_squared,mean_training_minimum_eigenvalue,maximum_training_condition_number,n_non_positive_definite_training_matrices,selection_criterion,training_nll_rank,selected_by_training_nll
-0.9,ewma_cov_60m_lambda_0_90,24,-4.548586891094679,3.716615920349048,8.658632822511488e-05,872.0365701133568,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,2,False
-0.93,ewma_cov_60m_lambda_0_93,24,-4.557311086761586,3.564113170299238,9.238229024799735e-05,760.9754061842812,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,1,True
-0.95,ewma_cov_60m_lambda_0_95,24,-4.541643352298255,3.5659372770416815,9.401464894600538e-05,738.5768101245555,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,3,False
-0.97,ewma_cov_60m_lambda_0_97,24,-4.509866254551114,3.6769892947202556,9.31794952672975e-05,744.6912980615072,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,4,False
-0.98,ewma_cov_60m_lambda_0_98,24,-4.488575372703116,3.778260408488705,9.184836923608457e-05,773.8039231126119,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,5,False
-0.99,ewma_cov_60m_lambda_0_99,24,-4.46437947748333,3.9093923096233123,9.002324858216894e-05,818.1829420246785,0,Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.,6,False
