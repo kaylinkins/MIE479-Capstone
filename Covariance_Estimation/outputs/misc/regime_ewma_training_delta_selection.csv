@@ -1,0 +1,5 @@
+delta,estimator,n_common_training_origins,mean_training_multivariate_nll,mean_training_mahalanobis_squared,lambda_definition,selection_criterion,training_nll_rank,selected_by_training_nll
+0.0,regime_ewma_cov_60m_base_0_93_delta_0_00,24,-4.557311086761586,3.564113170299238,0.93 - delta * p_bear_month1,Lowest one-month-ahead multivariate Gaussian NLL on common training-only rolling-origin forecasts.,4,False
+0.02,regime_ewma_cov_60m_base_0_93_delta_0_02,24,-4.57191536922055,3.543304090441412,0.93 - delta * p_bear_month1,Lowest one-month-ahead multivariate Gaussian NLL on common training-only rolling-origin forecasts.,3,False
+0.04,regime_ewma_cov_60m_base_0_93_delta_0_04,24,-4.5801036043199765,3.542130891807718,0.93 - delta * p_bear_month1,Lowest one-month-ahead multivariate Gaussian NLL on common training-only rolling-origin forecasts.,2,False
+0.06,regime_ewma_cov_60m_base_0_93_delta_0_06,24,-4.582816420863102,3.5562830191588692,0.93 - delta * p_bear_month1,Lowest one-month-ahead multivariate Gaussian NLL on common training-only rolling-origin forecasts.,1,True

@@ -1,0 +1,54 @@
+{
+  "estimator": "ewma_cov_60m_lambda_0_93",
+  "ewma_lambda": 0.93,
+  "estimation_window_months": 60,
+  "forecast_horizons": [
+    1,
+    2,
+    3
+  ],
+  "asset_order": [
+    "Equity",
+    "Bond",
+    "BTC"
+  ],
+  "monthly_return_definition": "Compounded monthly simple returns for complete common XNYS trading months.",
+  "covariance_units": "monthly decimal-return squared",
+  "estimation_method": "Demeaned exponentially weighted sample covariance using the same ewma_sample_covariance implementation as covariance_diagnostics.py.",
+  "walk_forward_rule": "At each monthly rebalance, use only the trailing 60 complete monthly return vectors strictly before the rebalance month.",
+  "month_ahead_convention": "month_ahead=1 is the rebalance month; 2 and 3 are the next two calendar months.",
+  "horizon_covariance_assumption": "A static EWMA estimate does not model future changes in volatility or correlation. The origin covariance matrix is therefore carried forward unchanged for horizons 1-3.",
+  "not_cumulative_covariance": "Each matrix is the covariance of an individual forecast month's return vector. It is not the covariance of cumulative returns over 2 or 3 months.",
+  "cross_month_covariance_included": false,
+  "training_lambda_selection": {
+    "selected_lambda": 0.93,
+    "selected_estimator": "ewma_cov_60m_lambda_0_93",
+    "selection_criterion": "Lowest mean multivariate Gaussian NLL on common training-only rolling-origin forecasts.",
+    "validation_used_to_select_lambda": false
+  },
+  "walk_forward_validation_file": "covariances_ewma_lambda_0_93_walk_forward_validation.csv",
+  "latest_available_origin_file": "covariances_ewma_lambda_0_93_latest_available_origin.csv",
+  "latest_available_origin": {
+    "origin_type": "latest_available_origin",
+    "rebalance_date": "2024-06-03",
+    "information_date": "2024-05-31",
+    "origin_month": "2024-06",
+    "forecast_months": [
+      "2024-06",
+      "2024-07",
+      "2024-08"
+    ],
+    "estimation_start_month": "2019-06",
+    "estimation_end_month": "2024-05",
+    "n_estimation_months": 60,
+    "ewma_lambda": 0.93,
+    "effective_sample_months": 26.871715303167605,
+    "minimum_eigenvalue": 0.0001936118250047184,
+    "condition_number": 178.30708413350882,
+    "positive_definite": true,
+    "horizon_covariance_assumption": "Same origin covariance carried forward for horizons 1-3."
+  },
+  "test_file_read": false,
+  "hmm_script_modified": false,
+  "hmm_covariance_file_read": false
+}

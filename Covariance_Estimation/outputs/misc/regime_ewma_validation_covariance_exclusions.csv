@@ -1,0 +1,4 @@
+rebalance_date,month_ahead,forecast_month,reason
+2024-04-01,3,2024-06,Target month is not a complete observed validation month; covariance forecast is retained for MPO but cannot be scored.
+2024-05-01,2,2024-06,Target month is not a complete observed validation month; covariance forecast is retained for MPO but cannot be scored.
+2024-05-01,3,2024-07,Target month is not a complete observed validation month; covariance forecast is retained for MPO but cannot be scored.

@@ -1,0 +1,127 @@
+Baseline,Horizon,Comparison,Covariance Estimator,Sharpe,HMM Covariance Sharpe,Sharpe Difference vs HMM
+60/40 (tracking),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.3855188625999597,0.38553318094593875,-1.4318345979036362e-05
+60/40 (tracking),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.3855142247130181,0.38553318094593875,-1.8956232920641636e-05
+60/40 (tracking),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.38552592586846024,0.38553318094593875,-7.255077478507399e-06
+60/40 (tracking),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.3855230089137343,0.38553318094593875,-1.0172032204436299e-05
+60/40 (tracking),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.3855316800917744,0.38553318094593875,-1.5008541643379836e-06
+60/40 (tracking),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.38552457344535934,0.38553318094593875,-8.60750057940507e-06
+60/40 (tracking),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.38551520848594156,0.3855252154111171,-1.0006925175554127e-05
+60/40 (tracking),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.385512162382024,0.3855252154111171,-1.3053029093101909e-05
+60/40 (tracking),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.38552062999440506,0.3855252154111171,-4.585416712055146e-06
+60/40 (tracking),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.3855185343126917,0.3855252154111171,-6.681098425442844e-06
+60/40 (tracking),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.3855253745436487,0.3855252154111171,1.591325315963843e-07
+60/40 (tracking),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.3855197945169341,0.3855252154111171,-5.420894183039149e-06
+60/40 (tracking),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.3855140881700912,0.38552358106690204,-9.49289681084764e-06
+60/40 (tracking),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.3855117141978154,0.38552358106690204,-1.1866869086663012e-05
+60/40 (tracking),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.3855189605755921,0.38552358106690204,-4.620491309947905e-06
+60/40 (tracking),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.3855171054907223,0.38552358106690204,-6.475576179720832e-06
+60/40 (tracking),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.3855232490149817,0.38552358106690204,-3.32051920348686e-07
+60/40 (tracking),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.3855182199211322,0.38552358106690204,-5.361145769822162e-06
+Equal weight (tracking),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.707520316710069,0.6994011264057218,0.008119190304347157
+Equal weight (tracking),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.7099833456495043,0.6994011264057218,0.010582219243782442
+Equal weight (tracking),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.7007223820274447,0.6994011264057218,0.0013212556217229166
+Equal weight (tracking),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6953983220822846,0.6994011264057218,-0.004002804323437248
+Equal weight (tracking),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.6984334226065294,0.6994011264057218,-0.0009677037991924209
+Equal weight (tracking),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.6963487012121821,0.6994011264057218,-0.003052425193539765
+Equal weight (tracking),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.6963092842964679,0.7016367970830758,-0.005327512786607924
+Equal weight (tracking),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.697644542839207,0.7016367970830758,-0.003992254243868842
+Equal weight (tracking),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.6938746512895615,0.7016367970830758,-0.007762145793514308
+Equal weight (tracking),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.69587700763927,0.7016367970830758,-0.005759789443805841
+Equal weight (tracking),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.6991018220232708,0.7016367970830758,-0.0025349750598050447
+Equal weight (tracking),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.6971797886356976,0.7016367970830758,-0.004457008447378175
+Equal weight (tracking),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.6973915153071129,0.7003817203925274,-0.002990205085414588
+Equal weight (tracking),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.6975396450288244,0.7003817203925274,-0.002842075363703067
+Equal weight (tracking),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.6946191596563548,0.7003817203925274,-0.0057625607361726505
+Equal weight (tracking),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6979307527396545,0.7003817203925274,-0.002450967652872893
+Equal weight (tracking),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.6997538012442679,0.7003817203925274,-0.0006279191482595481
+Equal weight (tracking),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.6987091888273876,0.7003817203925274,-0.001672531565139801
+MVO (mean-variance),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.7205517477748039,0.8282983600084692,-0.10774661223366533
+MVO (mean-variance),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.7311016659092419,0.8282983600084692,-0.09719669409922738
+MVO (mean-variance),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.7208926267321687,0.8282983600084692,-0.10740573327630054
+MVO (mean-variance),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.7352882825807227,0.8282983600084692,-0.09301007742774658
+MVO (mean-variance),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.7352882832671488,0.8282983600084692,-0.09301007674132045
+MVO (mean-variance),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7352882831958855,0.8282983600084692,-0.09301007681258378
+MVO (mean-variance),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.7339251809631938,0.8402120866176068,-0.10628690565441301
+MVO (mean-variance),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.7437221137657622,0.8402120866176068,-0.09648997285184457
+MVO (mean-variance),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.7302199756572636,0.8402120866176068,-0.10999211096034323
+MVO (mean-variance),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.735288282195358,0.8402120866176068,-0.1049238044222488
+MVO (mean-variance),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.7352882839779306,0.8402120866176068,-0.10492380263967627
+MVO (mean-variance),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7352882826867984,0.8402120866176068,-0.10492380393080847
+MVO (mean-variance),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.7364220292134798,0.8268251968432646,-0.09040316762978484
+MVO (mean-variance),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.7436283820648883,0.8268251968432646,-0.08319681477837626
+MVO (mean-variance),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.7315851484969518,0.8268251968432646,-0.09524004834631283
+MVO (mean-variance),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.735288281755219,0.8268251968432646,-0.09153691508804562
+MVO (mean-variance),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.7352882829534951,0.8268251968432646,-0.09153691388976948
+MVO (mean-variance),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7352882825534963,0.8268251968432646,-0.09153691428976829
+MVO (min variance),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,-0.4266400050953681,-0.3553633160810408,-0.07127668901432727
+MVO (min variance),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,-0.42663996308169705,-0.3553633160810408,-0.07127664700065622
+MVO (min variance),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,-0.39520214268938425,-0.3553633160810408,-0.039838826608343425
+MVO (min variance),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,-0.37890678103668,-0.3553633160810408,-0.023543464955639193
+MVO (min variance),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,-0.3485705935538035,-0.3553633160810408,0.006792722527237338
+MVO (min variance),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,-0.3958119763744312,-0.3553633160810408,-0.04044866029339039
+MVO (min variance),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,-0.42664003363439235,-0.3511912105782504,-0.07544882305614192
+MVO (min variance),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,-0.4266400141581071,-0.3511912105782504,-0.07544880357985667
+MVO (min variance),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,-0.3952024158054533,-0.3511912105782504,-0.044011205227202865
+MVO (min variance),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,-0.3789067928860511,-0.3511912105782504,-0.02771558230780069
+MVO (min variance),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,-0.35694018615671647,-0.3511912105782504,-0.005748975578466042
+MVO (min variance),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,-0.39581194201390923,-0.3511912105782504,-0.04462073143565881
+MVO (min variance),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,-0.42664003424302255,-0.34869782802862487,-0.07794220621439768
+MVO (min variance),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,-0.42664000789259376,-0.34869782802862487,-0.0779421798639689
+MVO (min variance),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,-0.43223210285755664,-0.34869782802862487,-0.08353427482893178
+MVO (min variance),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,-0.3789068039311416,-0.34869782802862487,-0.030208975902516755
+MVO (min variance),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,-0.35636036642235785,-0.34869782802862487,-0.007662538393732987
+MVO (min variance),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,-0.395812016418572,-0.34869782802862487,-0.04711418838994713
+Max Sharpe (matched return),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.5332857371683922,0.49243116417558047,0.040854572992811755
+Max Sharpe (matched return),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.5746908346827316,0.49243116417558047,0.08225967050715116
+Max Sharpe (matched return),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.4627017087055653,0.49243116417558047,-0.029729455470015154
+Max Sharpe (matched return),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6888005702380802,0.49243116417558047,0.1963694060624997
+Max Sharpe (matched return),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.9059978847006891,0.49243116417558047,0.4135667205251086
+Max Sharpe (matched return),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7062497343572147,0.49243116417558047,0.21381857018163425
+Max Sharpe (matched return),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.5242004950914627,0.4980661328525677,0.026134362238895037
+Max Sharpe (matched return),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.542412815155824,0.4980661328525677,0.04434668230325628
+Max Sharpe (matched return),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.45596363308412236,0.4980661328525677,-0.04210249976844532
+Max Sharpe (matched return),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6782059730862634,0.4980661328525677,0.18013984023369572
+Max Sharpe (matched return),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.8737934544336886,0.4980661328525677,0.37572732158112093
+Max Sharpe (matched return),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.6984612479361361,0.4980661328525677,0.2003951150835684
+Max Sharpe (matched return),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.512579325570755,0.501646193154294,0.010933132416460989
+Max Sharpe (matched return),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.5376682914619466,0.501646193154294,0.03602209830765257
+Max Sharpe (matched return),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.4454600542291546,0.501646193154294,-0.05618613892513946
+Max Sharpe (matched return),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6647312326315631,0.501646193154294,0.16308503947726904
+Max Sharpe (matched return),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.8591980135328202,0.501646193154294,0.3575518203785262
+Max Sharpe (matched return),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.685233518356547,0.501646193154294,0.18358732520225296
+Max Sharpe (tracking),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.4428610784446536,0.4590335745717871,-0.016172496127133507
+Max Sharpe (tracking),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.44344772065029403,0.4590335745717871,-0.015585853921493087
+Max Sharpe (tracking),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.4455604029142254,0.4590335745717871,-0.013473171657561733
+Max Sharpe (tracking),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6901009410777689,0.4590335745717871,0.23106736650598175
+Max Sharpe (tracking),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.8520858279657431,0.4590335745717871,0.39305225339395594
+Max Sharpe (tracking),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7002161730027086,0.4590335745717871,0.24118259843092144
+Max Sharpe (tracking),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.4588966650028013,0.4880294991878616,-0.029132834185060297
+Max Sharpe (tracking),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.4588817437527059,0.4880294991878616,-0.029147755435155687
+Max Sharpe (tracking),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.4331163495161799,0.4880294991878616,-0.054913149671681705
+Max Sharpe (tracking),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.6976803017667881,0.4880294991878616,0.2096508025789265
+Max Sharpe (tracking),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.8845110117514874,0.4880294991878616,0.3964815125636258
+Max Sharpe (tracking),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7172920975021099,0.4880294991878616,0.22926259831424828
+Max Sharpe (tracking),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.4588080685217324,0.5104751256730655,-0.05166705715133313
+Max Sharpe (tracking),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.47362197855809046,0.5104751256730655,-0.03685314711497506
+Max Sharpe (tracking),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.4298654990951551,0.5104751256730655,-0.08060962657791043
+Max Sharpe (tracking),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.7065028028263434,0.5104751256730655,0.19602767715327785
+Max Sharpe (tracking),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.8903169233437305,0.5104751256730655,0.37984179767066495
+Max Sharpe (tracking),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.7201384314064565,0.5104751256730655,0.20966330573339098
+Risk parity (tracking),1,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.4520670807291647,0.21145749912983314,0.24060958159933155
+Risk parity (tracking),1,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.5119468614936267,0.21145749912983314,0.30048936236379353
+Risk parity (tracking),1,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.33192312197083623,0.21145749912983314,0.1204656228410031
+Risk parity (tracking),1,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.270871471388619,0.21145749912983314,0.05941397225878586
+Risk parity (tracking),1,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.26350164232275597,0.21145749912983314,0.05204414319292283
+Risk parity (tracking),1,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.2681305834546562,0.21145749912983314,0.05667308432482304
+Risk parity (tracking),2,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.41595010234571794,0.2037804942827121,0.21216960806300583
+Risk parity (tracking),2,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.460692408051782,0.2037804942827121,0.2569119137690699
+Risk parity (tracking),2,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.32531516041463915,0.2037804942827121,0.12153466613192704
+Risk parity (tracking),2,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.2763526532486409,0.2037804942827121,0.07257215896592878
+Risk parity (tracking),2,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.2728486003467956,0.2037804942827121,0.06906810606408348
+Risk parity (tracking),2,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.2747492793529037,0.2037804942827121,0.07096878507019161
+Risk parity (tracking),3,ewma_cov_60m_lambda_0_93 minus HMM covariance,ewma_cov_60m_lambda_0_93,0.39837505395368605,0.20126163962687196,0.1971134143268141
+Risk parity (tracking),3,regime_ewma_cov_60m_base_0_93_delta_0_06 minus HMM covariance,regime_ewma_cov_60m_base_0_93_delta_0_06,0.4488773172448893,0.20126163962687196,0.2476156776180173
+Risk parity (tracking),3,rolling_sample_36m minus HMM covariance,rolling_sample_36m,0.3109891084667403,0.20126163962687196,0.10972746883986836
+Risk parity (tracking),3,rolling_sample_60m minus HMM covariance,rolling_sample_60m,0.2656283991100147,0.20126163962687196,0.06436675948314272
+Risk parity (tracking),3,ledoit_wolf_corr_60m minus HMM covariance,ledoit_wolf_corr_60m,0.26405430371008026,0.20126163962687196,0.0627926640832083
+Risk parity (tracking),3,constant_corr_60m_alpha_0_50 minus HMM covariance,constant_corr_60m_alpha_0_50,0.2646420738728216,0.20126163962687196,0.06338043424594966
