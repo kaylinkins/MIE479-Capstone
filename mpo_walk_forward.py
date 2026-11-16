@@ -16,6 +16,11 @@
 #     3. trades only to w1. Next month the whole plan is rebuilt.
 #   With H = 1 this is single-period optimization with trading costs.
 #
+#   Also evaluates one standalone Buy-and-hold baseline: it starts with
+#   one-third of initial capital in each of Equity, Bond, and BTC, pays
+#   the initial purchase cost once, and then holds without rebalancing.
+#   Its asset weights drift as returns differ.
+#
 # How each baseline model becomes an MPO model:
 #   MVO (mean-variance)   maximize  sum_k [ mu'w_k - (lambda/2) w_k' S_k w_k
 #                                           - cost(w_k - w_{k-1}) ]
@@ -33,32 +38,22 @@
 #   cost(z) = GAMMA_TRADE * sum_i cost_rate_i * |z_i|  (COST_BPS below).
 #
 # Covariance forecasts over the horizon (COV_FORECAST):
-#   "constant"  S_k = five-year scenario covariance for every k. With
-#               constant forecasts, MPO with horizon H behaves like H = 1
-#               with the trading cost spread over H months, so H mostly
-#               acts as a trade-aversion knob.
-#   "decay"     S_k = d^k * S_short + (1 - d^k) * S_long: today's risk is
-#               closer to the recent (SHORT_WINDOW-day) covariance and
-#               reverts to the five-year level over the horizon. This is
-#               the case where planning ahead can change the trade.
-#               A GARCH/DCC forecast per month can replace this later.
+#   "constant"  S_k = five-year scenario covariance for every k.
+#   "decay"     S_k = d^k * S_short + (1 - d^k) * S_long.
 #
 # Reference rows ("SPO, cost-unaware"): H = 1 with GAMMA_TRADE = 0, i.e.
 #   each model trades fully to its one-month optimum and costs are only
-#   charged afterwards. For risk parity, equal weight, 60/40 and max Sharpe
-#   these are exactly the models in walk_forward.py.
+#   charged afterwards.
 #
 # Inputs:  portfolio_train.csv, portfolio_validation.csv
 # Outputs: mpo_results.csv, mpo_weights.csv, mpo_returns.csv
 #
 # Notes:
-#   - The test set is NOT used. Keep INCLUDE_TEST = False until the
-#     settings (H, GAMMA_TRADE, RISK_AVERSION, ...) are chosen on validation.
-#   - Planning uses the simplified dynamics w_{k+1} = w_k + z_k (returns
-#     within the plan are ignored). Only w1 is traded, and the simulation
-#     itself uses the true drift, as in walk_forward.py.
-#   - Every future month in the plan is assumed to have the same number of
-#     trading days as the current month.
+#   - The test set is NOT used. Keep INCLUDE_TEST = False.
+#   - The buy-and-hold baseline is one standalone 1/3-each portfolio; it is
+#     not seeded from an optimizer and is not repeated for each MPO horizon.
+#   - Planning uses simplified dynamics that ignore return drift within the
+#     plan. The simulation applies realized returns to holdings.
 # ============================================================
 
 from pathlib import Path
@@ -82,18 +77,20 @@ ROLLING_YEARS = 5
 HORIZONS = [1, 2, 3, 6]   # planning horizons H to test, in months
 
 # Trading cost per asset in bps of the amount traded (buys and sells).
-# MPO needs a non-zero cost: with no cost it reduces to repeated SPO.
 COST_BPS = {"Equity": 10.0, "Bond": 10.0, "BTC": 10.0}
 GAMMA_TRADE = 1.0     # scales the cost inside the optimizer (1 = true cost)
 
 RISK_AVERSION = 2.5   # lambda for the mean-variance models (same as BL)
 TRACKING_AVERSION = 2.5   # lambda_track for the tracking models
 
-COV_FORECAST = "decay"    # "constant" or "decay" (see header)
+COV_FORECAST = "decay"    # "constant" or "decay"
 SHORT_WINDOW = 63         # trading days in the recent covariance
 COV_DECAY = 0.5           # d: share of the recent covariance left after one month
 
 EXPECTED_RETURNS = "historical"   # "historical" or "bl" (uses bl_core.py)
+
+BUY_HOLD_PORTFOLIO = "Buy-and-hold (1/3 each)"
+BUY_HOLD_RUN = "Standalone baseline"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 output = Path(__file__).resolve().parent
@@ -125,6 +122,12 @@ train, validation = load("train"), load("validation")
 frames = [train, validation] + ([load("test")] if INCLUDE_TEST else [])
 assets = list(train.columns)
 n = len(assets)
+
+if n != 3:
+    raise ValueError(
+        "The 1/3-each buy-and-hold baseline requires exactly three assets."
+    )
+
 returns = pd.concat(frames)[assets].sort_index()
 if returns.index.hasnans or not returns.index.is_unique or returns.isna().any().any():
     raise ValueError("Returns must have unique dates and no missing values.")
@@ -152,7 +155,7 @@ def historical_scenarios(history, holding_days):
 
 def forecasts(history, holding_days, H):
     """
-    Month-length expected returns and covariances for months 1..H ahead.
+    Month-length expected returns and covariances for months 1..H.
     Returns (mu, [S_1, ..., S_H], S_long), all on the holding-period scale.
     """
     R = historical_scenarios(history, holding_days)
@@ -251,7 +254,7 @@ def solve_mpo(w0, covs, upper, mu=None, target=None, lam=RISK_AVERSION,
 
 
 def fit_all(history, holding_days, H, drifted, gamma_trade):
-    """Weights to trade to this month for every model, at horizon H."""
+    """Weights to trade to this month for every optimizer baseline model."""
     mu, covs, S_long = forecasts(history, holding_days, H)
     zero = np.zeros(n)
     out = {}
@@ -264,12 +267,13 @@ def fit_all(history, holding_days, H, drifted, gamma_trade):
     for name, t in targets(mu, S_long, holding_days).items():
         caps = upper_capped if name.startswith("Max Sharpe") else upper_free
         out[name] = solve_mpo(drifted.get(name, zero), covs, caps, target=t,
-                              lam=TRACKING_AVERSION, gamma_trade=gamma_trade)[0]
+                              lam=TRACKING_AVERSION,
+                              gamma_trade=gamma_trade)[0]
     return out
 
 
 # ------------------------------------------------------------
-# STEP 5: WALK FORWARD (one run per horizon, plus the cost-unaware reference)
+# STEP 5: WALK FORWARD PLUS ONE STANDALONE BUY-AND-HOLD BASELINE
 # ------------------------------------------------------------
 
 oos_start = validation.index.min()
@@ -278,10 +282,16 @@ oos_months = sorted(set(months[returns.index >= oos_start]))
 if returns.index[months == oos_months[0]][0] < oos_start:
     raise ValueError("The validation set must start at the beginning of a month.")
 
-runs = [("SPO, cost-unaware", 1, 0.0)] + [(f"MPO H={H}", H, GAMMA_TRADE) for H in HORIZONS]
+runs = [("SPO, cost-unaware", 1, 0.0)] + [
+    (f"MPO H={H}", H, GAMMA_TRADE) for H in HORIZONS
+]
 
 daily, turnover, costs, weight_rows = {}, {}, {}, []
 
+# This allocation is set independently; it is not taken from any optimizer.
+buy_hold_initial_weights = np.full(n, 1.0 / 3.0)
+
+# Walk-forward optimizer runs.
 for run_label, H, gamma_trade in runs:
     drifted = {}
     for m in oos_months:
@@ -300,24 +310,84 @@ for run_label, H, gamma_trade in runs:
         for name, w in weights.items():
             key = (name, run_label)
             if name in drifted:
-                turnover.setdefault(key, []).append(0.5 * np.abs(w - drifted[name]).sum())
+                turnover.setdefault(key, []).append(
+                    0.5 * np.abs(w - drifted[name]).sum()
+                )
             cost = float(cost_rate @ np.abs(w - drifted.get(name, np.zeros(n))))
             costs.setdefault(key, []).append(cost)
             wealth = (growth @ w) * (1.0 - cost)
             previous = np.concatenate([[1.0], wealth[:-1]])
-            daily.setdefault(key, []).append(pd.Series(wealth / previous - 1.0, index=days.index))
+            daily.setdefault(key, []).append(
+                pd.Series(wealth / previous - 1.0, index=days.index)
+            )
             end_value = w * growth[-1]
             drifted[name] = end_value / end_value.sum()
-            weight_rows.append({"Run": run_label, "Month": str(m), "Portfolio": name,
-                                **{a: w[i] for i, a in enumerate(assets)}})
+            weight_rows.append({
+                "Run": run_label,
+                "Month": str(m),
+                "Portfolio": name,
+                **{a: w[i] for i, a in enumerate(assets)}
+            })
 
-oos_returns = pd.DataFrame({f"{name} | {run}": pd.concat(parts)
-                            for (name, run), parts in daily.items()})
+# Standalone buy-and-hold: invest once at the start of validation, then
+# hold the original asset quantities. No optimizer calls or later trades.
+oos_days = returns.loc[returns.index >= oos_start, assets]
+oos_growth = (1.0 + oos_days.to_numpy()).cumprod(axis=0)
+oos_month_index = oos_days.index.to_period("M")
+
+initial_cost = float(cost_rate @ np.abs(buy_hold_initial_weights))
+if not np.isfinite(initial_cost) or not 0.0 <= initial_cost < 1.0:
+    raise ValueError(f"Invalid initial buy-and-hold cost: {initial_cost}")
+
+# With fixed asset holdings, portfolio wealth is the sum of each asset's
+# cumulative growth times its initial allocation. Entry cost is applied once.
+buy_hold_wealth = (
+    oos_growth @ buy_hold_initial_weights
+) * (1.0 - initial_cost)
+buy_hold_previous_wealth = np.concatenate([[1.0], buy_hold_wealth[:-1]])
+buy_hold_daily_returns = buy_hold_wealth / buy_hold_previous_wealth - 1.0
+
+buy_hold_key = (BUY_HOLD_PORTFOLIO, BUY_HOLD_RUN)
+daily[buy_hold_key] = [
+    pd.Series(buy_hold_daily_returns, index=oos_days.index)
+]
+
+# Monthly turnover means post-entry rebalancing turnover: it is zero for
+# buy-and-hold. The initial purchase fee is recorded in costs separately.
+turnover[buy_hold_key] = [0.0]
+costs[buy_hold_key] = [initial_cost]
+
+# Save actual month-start weights, which drift from 1/3 each after entry.
+for m in oos_months:
+    positions = np.flatnonzero(oos_month_index == m)
+    if positions.size == 0:
+        raise RuntimeError(f"No validation return dates found for month {m}.")
+
+    first_position = int(positions[0])
+    if first_position == 0:
+        growth_before_month = np.ones(n)
+    else:
+        growth_before_month = oos_growth[first_position - 1]
+
+    holdings_at_month_start = buy_hold_initial_weights * growth_before_month
+    month_start_weights = holdings_at_month_start / holdings_at_month_start.sum()
+
+    weight_rows.append({
+        "Run": BUY_HOLD_RUN,
+        "Month": str(m),
+        "Portfolio": BUY_HOLD_PORTFOLIO,
+        **{a: month_start_weights[i] for i, a in enumerate(assets)}
+    })
+
+oos_returns = pd.DataFrame({
+    f"{name} | {run}": pd.concat(parts)
+    for (name, run), parts in daily.items()
+})
 weights_df = pd.DataFrame(weight_rows)
 
 
 # ------------------------------------------------------------
-# STEP 6: PERFORMANCE (net of trading costs)
+# STEP 6: PERFORMANCE (NET OF TRADING COSTS)
 # ------------------------------------------------------------
 
 def performance(r):
@@ -339,14 +409,21 @@ def performance(r):
 
 rows = []
 for (name, run), parts in daily.items():
-    row = {"Portfolio": name, "Run": run,
-           **performance(pd.concat(parts).values),
-           "Avg Monthly Turnover": np.mean(turnover.get((name, run), [np.nan])),
-           "Total Costs Paid": np.sum(costs[(name, run)])}
-    sub = weights_df[(weights_df["Portfolio"] == name) & (weights_df["Run"] == run)]
+    row = {
+        "Portfolio": name,
+        "Run": run,
+        **performance(pd.concat(parts).values),
+        "Avg Monthly Turnover": np.mean(turnover.get((name, run), [np.nan])),
+        "Total Costs Paid": np.sum(costs[(name, run)])
+    }
+    sub = weights_df[
+        (weights_df["Portfolio"] == name) &
+        (weights_df["Run"] == run)
+    ]
     if "BTC" in assets:
         row["Avg BTC Weight"] = sub["BTC"].mean()
     rows.append(row)
+
 results = pd.DataFrame(rows).set_index(["Portfolio", "Run"])
 
 results.to_csv(output / "mpo_results.csv")
@@ -355,25 +432,42 @@ oos_returns.to_csv(output / "mpo_returns.csv")
 
 
 # ------------------------------------------------------------
-# STEP 7: PRINT
+# STEP 7: PRINT RESULTS
 # ------------------------------------------------------------
 
-pd.set_option("display.width", 220)
+pd.set_option("display.width", 240)
 pd.set_option("display.max_columns", None)
+
 print(f"Out-of-sample: {returns.index[returns.index >= oos_start].min().date()} to "
       f"{returns.index.max().date()} ({len(oos_months)} monthly rebalances)")
-print(f"Costs (bps): " + ", ".join(f"{a} {COST_BPS.get(a, 0):g}" for a in assets) +
-      f" | gamma_trade {GAMMA_TRADE} | lambda {RISK_AVERSION} | lambda_track {TRACKING_AVERSION}")
+print(f"Costs (bps): " + ", ".join(
+    f"{a} {COST_BPS.get(a, 0):g}" for a in assets
+) + f" | gamma_trade {GAMMA_TRADE} | lambda {RISK_AVERSION} "
+    f"| lambda_track {TRACKING_AVERSION}")
 print(f"Covariance forecast: {COV_FORECAST}"
-      + (f" (recent {SHORT_WINDOW} days, decay {COV_DECAY}/month)" if COV_FORECAST == "decay" else "")
+      + (f" (recent {SHORT_WINDOW} days, decay {COV_DECAY}/month)"
+         if COV_FORECAST == "decay" else "")
       + f" | expected returns: {EXPECTED_RETURNS} | BTC cap {BTC_CAP}")
 
-run_order = [r[0] for r in runs]
-for metric, pct in (("Sharpe", False), ("Ann. Return", True), ("Max Drawdown", True),
-                    ("Avg Monthly Turnover", True), ("Total Costs Paid", True)):
-    table = results[metric].unstack("Run")[run_order]
-    table = (table * 100).round(2) if pct else table.round(3)
+allocation_text = ", ".join(
+    f"{a} {w:.1%}" for a, w in zip(assets, buy_hold_initial_weights)
+)
+print(f"Standalone buy-and-hold allocation: {allocation_text}; "
+      f"initial cost {initial_cost:.3%}; no subsequent rebalancing.")
+
+run_order = [r[0] for r in runs] + [BUY_HOLD_RUN]
+for metric, pct in (
+    ("Sharpe", False),
+    ("Ann. Return", True),
+    ("Max Drawdown", True),
+    ("Avg Monthly Turnover", True),
+    ("Total Costs Paid", True),
+):
+    table = results[metric].unstack("Run").reindex(columns=run_order)
+    if pct:
+        table = table * 100
+    table = table.round(3 if not pct else 2)
     print(f"\n{metric.upper()}" + (" (%)" if pct else "") + " by model and run:")
-    print(table.to_string())
+    print(table.to_string(na_rep="—"))
 
 print("\nSaved: mpo_results.csv, mpo_weights.csv, mpo_returns.csv")
