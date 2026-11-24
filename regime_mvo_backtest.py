@@ -64,6 +64,7 @@ Outputs (Regime_MVO_MPO/outputs_rf4/)
     figure_1_cumulative_wealth.png, figure_2_portfolio_allocations.png,
     figure_3_drawdowns.png           aware CVaR vs MVO with HMM and Jump Model
                                      forecasts, DCC-GARCH, H = 3 and 20% BTC cap
+                                     plus the HMM and Jump three-asset heuristic
 
 Limits: 28 validation months, already inspected repeatedly; treat results as
 validation, not a fresh holdout.
@@ -75,6 +76,7 @@ import argparse
 import hashlib
 import itertools
 import json
+import sys
 import warnings
 
 import numpy as np
@@ -508,7 +510,9 @@ def main(selected=("aware", "switching"), horizons=HORIZONS, *,
     pd.DataFrame(daily).to_csv(OUTPUT_DIR / "regime_mvo_daily_returns.csv")
 
     if "aware" in selected and 3 in horizons and RISK_MODEL == "DCC GARCH" and BTC_CAPS == (0.20,):
+        sys.path.insert(0, str(ROOT))
         from regime_comparison_figures import save_comparison_figures
+        from simple_regime_strategy import comparison_rotation_paths
 
         cvar_results = Path(aware_results)
         manifest = completed_manifest(cvar_results)
@@ -516,9 +520,15 @@ def main(selected=("aware", "switching"), horizons=HORIZONS, *,
                                  parse_dates=["date"])
         cvar_monthly = pd.read_csv(checked_artifact(cvar_results, manifest, "portfolio_monthly.csv"),
                                    parse_dates=["origin"])
+        forecasts = Path(forecast_results)
+        forecast_manifest = completed_manifest(forecasts)
+        regime_signals = pd.read_csv(checked_artifact(forecasts, forecast_manifest, "regime_inputs.csv"),
+                                     parse_dates=["rebalance_date", "information_date"])
+        heuristic = comparison_rotation_paths(train, pd.concat(months.values()), regime_signals)
         save_comparison_figures(cvar_daily, cvar_monthly, daily, executed_weights,
-                                initial_date=train.index[-1], output=OUTPUT_DIR)
-        print(f"Saved three CVaR and MVO comparison figures to {OUTPUT_DIR}")
+                                initial_date=train.index[-1], output=OUTPUT_DIR,
+                                heuristic=heuristic)
+        print(f"Saved three regime-aware comparison figures to {OUTPUT_DIR}")
 
     pd.set_option("display.width", 240)
     pd.set_option("display.max_columns", None)
