@@ -1,4 +1,4 @@
-"""Figures for matched-return CVaR and max-Sharpe MVO on validation data."""
+"""Validation figures for CVaR, MVO and the three-asset heuristic."""
 from __future__ import annotations
 
 import numpy as np
@@ -47,30 +47,38 @@ def save_paths(paths, output, *, ylabel, formatter, reference):
 
 
 def save_allocations(allocations, probabilities, end, output):
-    fig = Figure(figsize=(15, 5.4), facecolor="white")
-    axes = fig.subplots(2, 4, sharex=True, sharey="row",
+    strategies = len(next(iter(allocations.values())))
+    columns = len(allocations) * strategies
+    fig = Figure(figsize=(5 * strategies + 5, 5.4), facecolor="white")
+    axes = fig.subplots(2, columns, sharex=True, sharey="row",
                         gridspec_kw={"height_ratios": (2, 1)})
-    fig.subplots_adjust(left=0.09, right=0.98, bottom=0.17, top=0.85, hspace=0.22, wspace=0.13)
+    fig.subplots_adjust(left=0.075, right=0.98, bottom=0.17, top=0.85, hspace=0.36, wspace=0.13)
 
     for i, (forecast, by_strategy) in enumerate(allocations.items()):
-        left = axes[0, 2 * i].get_position().x0
-        right = axes[0, 2 * i + 1].get_position().x1
+        first = strategies * i
+        left = axes[0, first].get_position().x0
+        right = axes[0, first + strategies - 1].get_position().x1
         fig.text((left + right) / 2, 0.95, f"{forecast} forecasts", ha="center", fontweight="bold")
         for j, (strategy, weights) in enumerate(by_strategy.items()):
-            top, bottom = axes[:, 2 * i + j]
+            top, bottom = axes[:, first + j]
             # Extend the final rebalance through the last validation session.
             plot_dates = weights.index.append(pd.DatetimeIndex([end]))
             plot_weights = np.vstack((weights.to_numpy(), weights.iloc[-1]))
-            probability = probabilities[forecast]
+            probability, threshold = probabilities[forecast][strategy]
             top.stackplot(plot_dates, *plot_weights.T, colors=ASSET_COLORS,
                           labels=("Equity", "Bond", "Bitcoin"), step="post", linewidth=0)
             top.set_title(strategy, fontsize=10)
             top.set_ylim(0, 1)
             top.set_xlim(plot_dates[0], end)
-            bottom.axhline(0.5, color="#7a898f", linewidth=0.9, linestyle="-")
+            if strategy == HEURISTIC:
+                signal_label = "As-of bear state" if forecast == "Jump Model" else "As-of bear probability"
+            else:
+                signal_label = "Month-end bear probability"
+            bottom.set_title(signal_label, fontsize=9)
+            bottom.axhline(threshold, color="#7a898f", linewidth=0.9, linestyle="-")
             bottom.step(plot_dates, np.r_[probability, probability.iloc[-1]], where="post",
                         color="#4b416b", linewidth=1.7, linestyle="-")
-            bottom.set_ylim(0, 1)
+            bottom.set_ylim(-0.025, 1.025)
             for ax in (top, bottom):
                 ax.set_yticks([0, 0.25, 0.5, 0.75, 1])
                 ax.yaxis.set_major_formatter(PercentFormatter(1))
@@ -79,13 +87,13 @@ def save_allocations(allocations, probabilities, end, output):
                 format_dates(ax, compact=True)
 
     axes[0, 0].set_ylabel("Rebalance weight")
-    axes[1, 0].set_ylabel("Bear probability")
+    axes[1, 0].set_ylabel("Bear signal")
     fig.legend(*axes[0, 0].get_legend_handles_labels(), loc="lower center", ncol=3, frameon=False)
     fig.savefig(output, dpi=220)
 
 
 def save_comparison_figures(cvar_daily, cvar_monthly, mvo_daily, mvo_monthly, *, initial_date, output,
-                            heuristic_daily=None):
+                            heuristic=None):
     """Plot the same validation days and executed rebalances for each paired strategy."""
     cvar_daily, cvar_monthly = [
         frame[(frame.policy == "matched_return") & (frame.horizon == 3) & (frame.scenarios == "DCC GARCH")]
@@ -121,15 +129,19 @@ def save_comparison_figures(cvar_daily, cvar_monthly, mvo_daily, mvo_monthly, *,
             raise ValueError(f"{forecast}: invalid month-end bear probabilities")
 
         daily = pd.DataFrame({CVAR: cvar_returns, MVO: mvo_returns})
-        if heuristic_daily is not None:
-            heuristic_returns = heuristic_daily[forecast]
+        allocations[forecast] = {CVAR: cvar_weights[list(ASSETS)], MVO: mvo_weights[list(ASSETS)]}
+        probabilities[forecast] = {CVAR: (p_bear, 0.5), MVO: (p_bear, 0.5)}
+        if heuristic is not None:
+            heuristic_returns, weights, bear_signal, threshold = heuristic[forecast]
             if not heuristic_returns.index.equals(validation_dates) or not np.isfinite(heuristic_returns).all():
                 raise ValueError(f"{forecast}: heuristic returns must cover the same validation sessions")
+            if not weights.index.equals(rebalances) or not bear_signal.index.equals(rebalances):
+                raise ValueError(f"{forecast}: heuristic weights and signals must cover the same rebalances")
             daily[HEURISTIC] = heuristic_returns
+            allocations[forecast][HEURISTIC] = weights[list(ASSETS)]
+            probabilities[forecast][HEURISTIC] = bear_signal, threshold
         initial = pd.DataFrame(0.0, index=[initial_date], columns=daily.columns)
         wealth[forecast] = pd.concat([initial, daily]).add(1).cumprod()
-        allocations[forecast] = {CVAR: cvar_weights[list(ASSETS)], MVO: mvo_weights[list(ASSETS)]}
-        probabilities[forecast] = p_bear
 
     drawdowns = {forecast: frame.div(frame.cummax()).sub(1) for forecast, frame in wealth.items()}
     save_paths(wealth, output / "figure_1_cumulative_wealth.png",
