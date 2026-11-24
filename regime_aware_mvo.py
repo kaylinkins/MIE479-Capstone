@@ -74,6 +74,7 @@ class Forecast:
     cov: np.ndarray             # (months, 3, 3) monthly covariances
     p_bear: np.ndarray | None   # (months,) P(bear), or None if no regimes
     days: np.ndarray | None = None   # (months,) trading days per month; None = no floor allowance
+    return_targets: np.ndarray | None = None  # (months,) externally shared floors for MS stages
 
 
 # ------------------------------------------------------------
@@ -126,12 +127,17 @@ def solve_stages(current_weights, forecast, stages, caps,
 
     Returns (weights to hold now, {"stages": rules used, "floors": return
     floor per month (None for MV months), "plan": planned path}).
-    An 'MS' month with no positive-excess portfolio falls back to 'MV'.
+    Without shared targets, an 'MS' month with no positive-excess portfolio falls back to 'MV'.
     """
     horizon = len(stages)
     mus, covs = forecast.mu[:horizon], forecast.cov[:horizon]
     if forecast.days is not None and (len(forecast.days) < horizon or np.any(np.asarray(forecast.days) < 1)):
         raise ValueError("Provide a positive trading-day count for every planned month")
+    targets = forecast.return_targets
+    if targets is not None:
+        targets = np.asarray(targets, float)
+        if targets.ndim != 1 or len(targets) < horizon or not np.isfinite(targets[:horizon]).all():
+            raise ValueError("Provide a finite shared return target for every planned month")
     W = cp.Variable((horizon, 3))
     constraints = [cp.sum(W, axis=1) == 1, W >= 0, W <= np.tile(caps, (horizon, 1))]
     objective, previous, used, floors = 0, current_weights, [], []
@@ -139,16 +145,19 @@ def solve_stages(current_weights, forecast, stages, caps,
         objective += gamma * cp.quad_form(W[k], cp.psd_wrap(covs[k]))
         objective += cost_rate * cp.sum(cp.abs(W[k] - previous))
         stage, floor = stages[k], None
-        if stage == "MS":
+        if stage == "MS" and targets is not None:
+            floor = float(targets[k])
+        elif stage == "MS":
             target = max_sharpe_weights(mus[k], covs[k], caps)
             if target is None:
                 stage = "MV"
             else:
                 allowance = 0.0 if forecast.days is None else FLOOR_ALLOWANCE_PER_DAY * forecast.days[k]
                 floor = float(mus[k] @ target - max(allowance, 1e-9))
-                constraints.append(mus[k] @ W[k] >= floor)
         elif stage != "MV":
             raise ValueError(f"Unknown stage rule: {stage}")
+        if floor is not None:
+            constraints.append(mus[k] @ W[k] >= floor)
         used.append(stage)
         floors.append(floor)
         previous = W[k]
