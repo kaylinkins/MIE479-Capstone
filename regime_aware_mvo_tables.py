@@ -4,12 +4,17 @@ Run from anywhere inside the repo:
     python Regime_MVO_MPO/regime_aware_mvo_tables.py
 
 Model: regime-aware Max Sharpe MVO (regime_aware_mvo.py), H = 3 only, HMM and
-tuned jump-model forecasts. Two tables:
-  1. Native scenarios: covariance = sample covariance (ddof=1) of each model's own
-     10,000 saved scenarios (cvar_scenarios.npz), as in the CVaR max-Sharpe
-     reference (regime_cvar.max_sharpe_reference).
-  2. DCC-GARCH scenarios: covariance = sample covariance of the team's 10,000
-     DCC-GARCH scenarios (same cache as regime_mvo_backtest.py).
+tuned jump-model forecasts. One table per covariance source in COVARIANCE_SOURCES:
+  "EWMA 0.93"         Covariance_Estimation/outputs/
+                      covariances_ewma_lambda_0_93_walk_forward_validation.csv
+                      (trailing 60 months, lambda chosen on training data; the same
+                      matrix for months 1-3 of each rebalance)
+  "DCC GARCH"         sample covariance of the team's 10,000 DCC-GARCH scenarios
+                      (same cache as regime_mvo_backtest.py)
+  "Native scenarios"  sample covariance (ddof=1) of each regime model's own 10,000
+                      saved scenarios (cvar_scenarios.npz); this is the MVO twin of
+                      the CVaR native-scenario table (regime_cvar.max_sharpe_reference)
+The expected returns and regime probabilities always come from the HMM or jump model.
 
 Settings match the regime-aware CVaR run: matched max-Sharpe floor with zero
 risk-free rate in the optimizer, 10 bps cost, caps (1, 1, 0.2), start in cash.
@@ -44,6 +49,8 @@ POLICY = "Max Sharpe MVO"                 # the regime-aware model
 RISK_FREE_ANNUAL = 0.04                   # for reported Sharpe only
 BTC_CAP = 0.20
 FORECASTS = {"HMM": bt.HMM_DIR, "Jump Model": bt.JUMP_DIR}   # JUMP_DIR = jump_tuned_outputs
+COVARIANCE_SOURCES = ("EWMA 0.93", "DCC GARCH")   # add "Native scenarios" for the CVaR-matching native table
+EWMA_FILE = bt.ROOT / "Covariance_Estimation" / "outputs" / "covariances_ewma_lambda_0_93_walk_forward_validation.csv"
 TRADING_DAYS = 252
 OUTPUT_CSV = bt.OUTPUT_DIR / "regime_aware_mvo_tables.csv"
 OUTPUT_MD = bt.OUTPUT_DIR / "regime_aware_mvo_tables.md"
@@ -66,6 +73,34 @@ def native_scenario_covariances(folder, dates):
                 raise ValueError(f"{folder.name}: scenarios for {d} have shape {values.shape}")
             out[d] = np.stack([np.cov(values[:, k], rowvar=False, ddof=1) for k in range(values.shape[1])])
     return out
+
+
+def ewma_covariances(dates):
+    """EWMA lambda = 0.93 monthly covariance forecasts for months 1-3 of each rebalance."""
+    if not EWMA_FILE.exists():
+        raise FileNotFoundError(f"{EWMA_FILE.relative_to(bt.ROOT)} not found")
+    covs = bt.read_long_covariances(EWMA_FILE)
+    missing = [d for d in dates if d not in covs]
+    if missing:
+        raise ValueError(f"{EWMA_FILE.name} lacks rebalance dates {missing[:3]}")
+    for d in dates:
+        if covs[d].shape[0] < HORIZON:
+            raise ValueError(f"{EWMA_FILE.name}: {d} has fewer than {HORIZON} forecast months")
+    return covs
+
+
+def covariances_for(source, folder, dates, cache):
+    """Stage covariances for one forecast model and one covariance source."""
+    if source == "EWMA 0.93":
+        return cache.setdefault("ewma", ewma_covariances(dates))
+    if source == "DCC GARCH":
+        if "dcc" not in cache:
+            train, validation = bt.find_returns("train"), bt.find_returns("validation")
+            cache["dcc"] = bt.dcc_covariances(train, validation, dates)
+        return cache["dcc"]
+    if source == "Native scenarios":
+        return native_scenario_covariances(folder, dates)
+    raise ValueError(f"Unknown covariance source: {source}")
 
 
 # ---------------------------------------------------------------- metrics
@@ -117,50 +152,55 @@ def run_specification(forecasts, months_by_date, labels):
     return months
 
 
-def main():
-    train, validation = bt.find_returns("train"), bt.find_returns("validation")
+def markdown(frame):
+    columns = ["Forecasts", "Regime", *COLUMNS]
+    fmt = {c: "{:.3f}" if c == "Annual Sharpe" or "costs" in c else "{:.2f}" for c in COLUMNS}
+    lines = ["| " + " | ".join(columns) + " |", "|" + "---|" * len(columns)]
+    for _, row in frame.iterrows():
+        lines.append("| " + " | ".join(fmt[c].format(row[c]) if c in fmt else str(row[c])
+                                       for c in columns) + " |")
+    return "\n".join(lines)
+
+
+def build_tables(run, heading, csv_path, md_path):
+    """Run one model for every forecast x covariance source and write the tables."""
+    validation = bt.find_returns("validation")
     days = bt.load_trading_days()
     dates = sorted(days)
     months_by_date = bt.month_slices(validation, dates)
     labels = bt.common_hmm_labels()
-    dcc = bt.dcc_covariances(train, validation, dates)
-
-    rows = []
-    for scenarios in ("Native", "DCC GARCH"):
+    cache, rows = {}, []
+    for source in COVARIANCE_SOURCES:
         for name, folder in FORECASTS.items():
             forecasts = bt.load_file_source(folder)
             if sorted(forecasts) != dates:
                 raise ValueError(f"{name} forecasts cover different dates than the trading-day file")
-            covariances = native_scenario_covariances(folder, dates) if scenarios == "Native" else dcc
+            covariances = covariances_for(source, folder, dates, cache)
             forecasts = bt.with_trading_days(bt.with_covariances(forecasts, covariances), days)
-            months = run_specification(forecasts, months_by_date, labels)
+            months = run(forecasts, months_by_date, labels)
             for regime_label, regime in (("Overall", None), ("Bull", "bull"), ("Bear", "bear")):
-                rows.append({"Forecasts": name,
-                             "Scenarios": name if scenarios == "Native" else "DCC GARCH",
-                             "Regime": regime_label, **regime_metrics(months, regime)})
-            print(f"done: {name} forecasts, {scenarios} scenarios", flush=True)
+                rows.append({"Forecasts": name, "Covariance": source, "Regime": regime_label,
+                             **regime_metrics(months, regime)})
+            print(f"done: {name} forecasts, {source} covariance", flush=True)
 
     table = pd.DataFrame(rows)
     bt.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    table.to_csv(OUTPUT_CSV, index=False)
-
-    def markdown(frame, columns):
-        fmt = {c: "{:.3f}" if c == "Annual Sharpe" or "costs" in c else "{:.2f}" for c in COLUMNS}
-        lines = ["| " + " | ".join(columns) + " |", "|" + "---|" * len(columns)]
-        for _, row in frame.iterrows():
-            lines.append("| " + " | ".join(fmt[c].format(row[c]) if c in fmt else str(row[c])
-                                           for c in columns) + " |")
-        return "\n".join(lines)
-
-    native = table[table["Scenarios"] != "DCC GARCH"]
-    dcc_rows = table[table["Scenarios"] == "DCC GARCH"]
-    text = ("Regime-aware Max Sharpe MVO, H=3, validation Feb 2022 - May 2024. "
-            "Sharpe uses rf = 4%. Bull/bear = common HMM labels.\n\n"
-            "Table 1: native scenarios\n\n" + markdown(native, ["Forecasts", "Scenarios", "Regime", *COLUMNS])
-            + "\n\nTable 2: DCC-GARCH scenarios\n\n" + markdown(dcc_rows, ["Forecasts", "Regime", *COLUMNS]) + "\n")
-    OUTPUT_MD.write_text(text)
+    table.to_csv(csv_path, index=False)
+    titles = {"EWMA 0.93": "EWMA covariance (lambda = 0.93)",
+              "DCC GARCH": "DCC-GARCH scenario covariance",
+              "Native scenarios": "Native regime-model scenario covariance"}
+    parts = [heading + " H=3, validation Feb 2022 - May 2024. Sharpe uses rf = 4%. "
+             "Bull/bear rows = common HMM labels.\n"]
+    for i, source in enumerate(COVARIANCE_SOURCES, 1):
+        parts.append(f"Table {i}: {titles[source]}\n\n" + markdown(table[table["Covariance"] == source]) + "\n")
+    text = "\n".join(parts)
+    md_path.write_text(text)
     print("\n" + text)
-    print(f"Saved {OUTPUT_CSV.relative_to(bt.ROOT)} and {OUTPUT_MD.relative_to(bt.ROOT)}")
+    print(f"Saved {csv_path.relative_to(bt.ROOT)} and {md_path.relative_to(bt.ROOT)}")
+
+
+def main():
+    build_tables(run_specification, "Regime-aware Max Sharpe MVO,", OUTPUT_CSV, OUTPUT_MD)
 
 
 if __name__ == "__main__":
