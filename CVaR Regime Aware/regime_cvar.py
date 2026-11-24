@@ -18,6 +18,7 @@ import cvar_mpo as cvar
 POLICIES = ('min_cvar', 'matched_return')
 SOURCES = ('HMM', 'DCC GARCH', 'DCC Hybrid')
 UPPER = (1., 1., .2)
+MAX_SHARPE_ANNUAL_RF = .04
 
 
 def validate_forecast(scenarios, expected_returns, holding_days):
@@ -37,15 +38,19 @@ def validate_forecast(scenarios, expected_returns, holding_days):
     return values, means, days
 
 
-def max_sharpe_reference(scenarios, expected_returns, holding_days, *, upper=UPPER):
+def max_sharpe_reference(scenarios, expected_returns, holding_days, *, upper=UPPER,
+                         annual_risk_free=MAX_SHARPE_ANNUAL_RF):
     """Original multistart Sharpe/floor formula, with an explicit mean forecast.
 
     Covariance comes from each native scenario ensemble. This is the only
     extension of the reference used by cvar_mpo.optimize_matched_cvar, whose
     public wrapper intentionally requires native scenario sample means.
-    Risk-free return is zero, as in that wrapper's default policy.
+    The effective annual risk-free rate is compounded over each holding period.
     """
     values, means, days = validate_forecast(scenarios, expected_returns, holding_days)
+    if not np.isscalar(annual_risk_free) or not np.isfinite(annual_risk_free) or annual_risk_free <= -1:
+        raise ValueError('Require a finite annual risk-free rate greater than -1')
+    stage_risk_free = np.expm1(np.log1p(annual_risk_free)*days/252)
     caps = np.asarray(upper, float)
     if (caps.shape != (3,) or not np.isfinite(caps).all() or (caps < 0).any()
             or (caps > 1).any() or caps.sum() < 1):
@@ -61,7 +66,7 @@ def max_sharpe_reference(scenarios, expected_returns, holding_days, *, upper=UPP
         covariance = np.cov(values[:, k], rowvar=False, ddof=1)
 
         def objective(w):
-            return -float(mean @ w)/np.sqrt(max(float(w @ covariance @ w), 1e-20))
+            return -float(mean @ w-stage_risk_free[k])/np.sqrt(max(float(w @ covariance @ w), 1e-20))
 
         candidates = []
         for start in starts:
@@ -82,7 +87,8 @@ def max_sharpe_reference(scenarios, expected_returns, holding_days, *, upper=UPP
         targets, days.copy(), {'method': 'Original multistart SLSQP with explicit forecast means',
             'floor_definition': 'Forecast mean dot max-Sharpe weights minus 1e-6 times holding days',
             'covariance_source': 'Unshifted native scenario sample covariance',
-            'upper': caps.tolist(), 'risk_free': 0.})
+            'upper': caps.tolist(), 'risk_free': stage_risk_free.tolist(),
+            'annual_risk_free': float(annual_risk_free)})
 
 
 def optimize_forecast_cvar(scenarios, pretrade_weights, holding_days, expected_returns,
