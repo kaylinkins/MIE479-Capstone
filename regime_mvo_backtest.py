@@ -1,10 +1,10 @@
 """Backtest: walk-forward evaluation of the regime MVO decision models.
 
 Run from the repository root:
-    python Regime_MVO_MPO/regime_mvo_backtest.py
-    python Regime_MVO_MPO/regime_mvo_backtest.py --model aware       # Model 1 only
-    python Regime_MVO_MPO/regime_mvo_backtest.py --model switching   # Model 2 only
-    python Regime_MVO_MPO/regime_mvo_backtest.py --horizons 1 3      # only some horizons (default 1 2 3)
+    python "MVO Regime Models/regime_mvo_backtest.py"
+    python "MVO Regime Models/regime_mvo_backtest.py" --model aware
+    python "MVO Regime Models/regime_mvo_backtest.py" --model switching
+    python "MVO Regime Models/regime_mvo_backtest.py" --horizons 1 3
 
 The two decision models live in their own files (keep all three together):
   regime_aware_mvo.py      Model 1: regime-aware MVO MPO (Max Sharpe MVO and
@@ -26,17 +26,13 @@ Same as hers:
   * Regime signal: the forecast MONTH-END bear probability of each stage
     (p_bear_month{k}_end for HMM / Jump; p_bear_month_end for Regime
     regression); bull if < 0.5, bear if > 0.5, an exact tie is an error.
-  * Risk model: DCC-GARCH scenarios for every forecast source (RISK_MODEL),
-    regenerated with the team's scenario_generation.py (10,000 scenarios,
-    seed 42, prior five years, frozen 2022-2024 NYSE calendar). The MVO
-    covariance of stage k is the covariance of those month-k scenarios, and
-    the max-Sharpe return floor uses the same covariance.
+  * Risk model: the exact DCC-GARCH scenarios from the CVaR forecast cache.
+    The MVO covariance for each stage is the sample covariance of those draws.
   * Bull stages: min risk + cost with the max-Sharpe return floor; bear
     stages: min risk + cost with no floor; the full plan is solved jointly and
     only stage one is executed.
-  * Return floor = stage mean . max-Sharpe weights - 1e-6 per trading day of
-    that month (cvar_mpo.matched_return_targets), with trading days from the
-    frozen 2022-2024 NYSE calendar (forecast_trading_days.csv).
+  * Return floors are read from the paired CVaR decision artifacts. They use
+    the stage mean times max-Sharpe weights minus 1e-6 per holding day.
   * H = 1 and 3 as in her run, plus H = 2 (HORIZONS); 10 bps cost; long-only, fully invested; BTC cap 20%; start
     in cash; exact self-financing fee and daily drift; no terminal liquidation.
   * Metrics: cumulative net return; Sharpe annualized from net daily returns
@@ -57,15 +53,13 @@ Different by design:
     instead of 0.5; the two risk scales are not comparable.
   * The static (no-regime) control is off by default, as in her run
     (INCLUDE_STATIC). Equal weight is reported as a baseline.
-Not verifiable here: her scenario cache (forecast_comparison_results) and
-helper modules are not in the repository, so the regenerated DCC scenarios
-are assumed, not checked, to equal hers.
+DCC-GARCH requires the completed CVaR forecast, fixed-policy all-DCC and
+switching all-DCC runs. Override their directories using the CLI if needed.
 
 Outputs (Regime_MVO_MPO/outputs/)
     regime_mvo_results.csv           one row per model x source x H x BTC cap
     regime_mvo_weights.csv           executed weights, stage regimes and rules
     regime_mvo_daily_returns.csv     net daily returns of every strategy
-    dcc_garch_stage_covariances.csv  cached DCC-GARCH stage covariances
 
 Limits: 28 validation months, already inspected repeatedly; treat results as
 validation, not a fresh holdout.
@@ -74,9 +68,9 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
+import hashlib
 import itertools
-import os
-import sys
+import json
 import warnings
 
 import numpy as np
@@ -98,8 +92,6 @@ INCLUDE_STATIC = False          # static no-regime control; excluded in the CVaR
 AWARE_POLICIES = ("Max Sharpe MVO", "Min Var MVO")   # Max Sharpe MVO = the regime-aware model (MVO twin of
                                        # matched-return CVaR); Min Var MVO = reference row (twin of min CVaR). Min Var
                                        # ignores return forecasts, so it is identical for every forecast source.
-N_SCENARIOS = 10000             # DCC-GARCH scenario settings, as in the CVaR run
-SEED = 42
 TRADING_DAYS = 252
 
 # (model name, policy label, decision function(current_weights, forecast, horizon, caps))
@@ -123,8 +115,7 @@ def find_repo_root():
     for folder in (HERE, *HERE.parents):
         if (folder / "HMM_regime_forecasts").is_dir() and (folder / "Return_Forecasting").is_dir():
             return folder
-    raise FileNotFoundError("Could not find the repository root (a folder containing "
-                            "HMM_regime_forecasts/ and Return_Forecasting/) above " + str(HERE))
+    return HERE.parent
 
 
 def first_existing(*paths):
@@ -138,18 +129,20 @@ def first_existing(*paths):
 ROOT = find_repo_root()
 OUTPUT_DIR = ROOT / "Regime_MVO_MPO" / "outputs"
 ASSETS = ("Equity", "Bond", "BTC")
+CVAR_DIR = ROOT / "CVaR Regime Models"
+FORECAST_RESULTS = CVAR_DIR / "forecast_comparison_results"
+CVAR_AWARE_RESULTS = CVAR_DIR / "all_dcc_comparison_results"
+CVAR_SWITCHING_RESULTS = CVAR_DIR / "regime_switching_all_dcc_results"
 
 HMM_DIR = ROOT / "HMM_regime_forecasts" / "hmm_outputs"
 JUMP_DIR = ROOT / "HMM_regime_forecasts" / "jump_tuned_outputs"   # training-tuned jump model (as in the CVaR run); original: jump_outputs
-REGRESSION_FILE = first_existing(                             # moved from outputs/misc/ on 2026-11-16
+REGRESSION_FILES = (
     ROOT / "Return_Forecasting" / "outputs" / "hmm_regime_conditional_returns.csv",
     ROOT / "Return_Forecasting" / "outputs" / "misc" / "hmm_regime_conditional_returns.csv")
 REGIME_EWMA_FILE = (ROOT / "Covariance_Estimation" / "outputs"
                     / "covariances_regime_ewma_training_selected_walk_forward_validation.csv")
 STATIC_RETURNS_FILE = ROOT / "Return_Forecasting" / "outputs" / "walk_forward_validation_expected_returns_h1_h3.csv"
 STATIC_COV_FILE = ROOT / "Covariance_Estimation" / "outputs" / "covariances_ewma_lambda_0_93_walk_forward_validation.csv"
-SCENARIO_DIR = ROOT / "Distribution Modelling (Scenario Generation)"
-DCC_CACHE = OUTPUT_DIR / "dcc_garch_stage_covariances.csv"
 TRADING_DAYS_FILE = HMM_DIR / "forecast_trading_days.csv"     # frozen NYSE calendar, same for every source
 
 
@@ -228,7 +221,7 @@ def load_regression_source():
     """Regime regression estimates (hmm_regime_conditional_returns.csv): select
     each stage's regime from its month-end bear probability, then use that
     regime's bull or bear conditional estimate. Native covariance: regime EWMA."""
-    returns = read_wide_returns(REGRESSION_FILE)
+    returns = read_wide_returns(first_existing(*REGRESSION_FILES))
     covs = read_long_covariances(REGIME_EWMA_FILE)
     out = {}
     for date, group in returns.items():
@@ -251,77 +244,87 @@ def load_static_source():
 # STEP 2b: DCC-GARCH RISK MODEL (shared by every source)
 # ------------------------------------------------------------
 
-def disable_broken_numba():
-    """Let `arch` run without numba when numba is installed but broken.
-
-    `arch` speeds up GARCH with numba if it can import it. A numba built for an
-    older numpy (common in Anaconda after upgrading numpy) crashes on import
-    with a SystemError instead of an ImportError, so `arch` fails to load.
-    `arch` supports ARCH_DISABLE_NUMBA=1, which uses its pure-Python code
-    instead: same results, slower.
-    """
-    if "arch" in sys.modules or os.environ.get("ARCH_DISABLE_NUMBA"):
-        return
-    try:
-        import numba  # noqa: F401
-    except Exception:
-        os.environ["ARCH_DISABLE_NUMBA"] = "1"
-        print("  numba could not be loaded; running arch without it (same results, slower).",
-              flush=True)
+def completed_manifest(folder):
+    manifest = json.loads((folder / "run_manifest.json").read_text(encoding="utf-8"))
+    if not manifest["completed"]:
+        raise ValueError(f"CVaR run is incomplete: {folder}")
+    return manifest
 
 
-def build_dcc_covariances(train, validation, dates):
-    """Stage covariances of DCC-GARCH month-length scenarios at each origin.
-
-    Uses the team's scenario_generation.py exactly as run_cvar_mpo.py does:
-    history = training + validation returns before the origin (the generator
-    keeps the prior five years), frozen 2022-2024 NYSE calendar, origin index =
-    chronological validation month, N_SCENARIOS scenarios, SEED.
-    """
-    if str(SCENARIO_DIR) not in sys.path:
-        sys.path.insert(0, str(SCENARIO_DIR))
-    disable_broken_numba()
-    try:
-        import scenario_generation as sg
-        import run_cvar_mpo
-    except ImportError as exc:
-        raise ImportError("Building DCC-GARCH covariances needs the 'arch' package "
-                          "(python -m pip install arch) and the Distribution Modelling folder.") from exc
-    calendar = run_cvar_mpo.known_calendar()
-    rows = []
-    for index, date in enumerate(dates):
-        origin = pd.Timestamp(date)
-        history = pd.concat([train, validation[validation.index < origin]])
-        periods = sg.monthly_periods(origin, calendar, 3)
-        forecast = sg.generate_scenarios(history, origin, periods, index,
-                                         n_scenarios=N_SCENARIOS, seed=SEED)
-        cube = forecast.returns["DCC GARCH"]                  # (scenarios, months, assets)
-        for k in range(3):
-            matrix = np.cov(cube[:, k, :], rowvar=False)
-            for i, asset in enumerate(ASSETS):
-                rows.append({"rebalance_date": date, "month_ahead": k + 1,
-                             "forecast_month": str(origin.to_period("M") + k), "asset": asset,
-                             **dict(zip(ASSETS, matrix[i]))})
-        print(f"  DCC-GARCH scenarios {index + 1:02d}/{len(dates)} {date}", flush=True)
-    frame = pd.DataFrame(rows)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    frame.to_csv(DCC_CACHE, index=False)
-    return frame
+def checked_artifact(folder, manifest, relative):
+    path = folder / relative
+    checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+    if checksum != manifest["output_sha256"].get(relative):
+        raise ValueError(f"CVaR artifact differs from its run manifest: {path}")
+    return path
 
 
-def dcc_covariances(train, validation, dates):
-    """Cached DCC-GARCH stage covariances; rebuilt if missing or for other dates."""
-    if DCC_CACHE.exists():
-        cached = pd.read_csv(DCC_CACHE)
-        if sorted(cached["rebalance_date"].unique()) == list(dates):
-            return read_long_covariances(DCC_CACHE)
-    print("Building DCC-GARCH stage covariances (about 1 second per month)...", flush=True)
-    build_dcc_covariances(train, validation, dates)
-    return read_long_covariances(DCC_CACHE)
+def load_paired_forecasts(forecast_results, aware_results, switching_results):
+    """Load the same DCC draws, forecast means, stage signals and floors as CVaR."""
+    forecast_run, aware_run, switching_run = map(
+        completed_manifest, (forecast_results, aware_results, switching_results))
+    for run in (aware_run, switching_run):
+        protocol = run["protocol"]
+        if protocol["source_forecast_fingerprint"] != forecast_run["fingerprint"]:
+            raise ValueError("Paired CVaR runs must use the same forecast cache")
+        if protocol["upper"] != [1.0, 1.0, 0.2] or protocol["horizons"] != [1, 3]:
+            raise ValueError("Paired CVaR runs must use the 20% BTC cap and horizons 1 and 3")
+    if BTC_CAPS != (0.20,):
+        raise ValueError("Paired MVO and CVaR require the same 20% BTC cap")
 
-
-def with_covariances(forecasts, covariances):
-    return {date: aware.Forecast(f.mu, covariances[date], f.p_bear, f.days) for date, f in forecasts.items()}
+    experiments = {"HMM": "hmm", "Jump Model": "jump", "Regime regression": "regression_dcc"}
+    if INCLUDE_STATIC:
+        experiments["Static"] = "static_dcc"
+    signals = pd.read_csv(
+        checked_artifact(switching_results, switching_run, "stage_selections.csv"),
+        float_precision="round_trip")
+    sources = {name: {} for name in experiments}
+    decisions = sorted(relative for relative in aware_run["output_sha256"]
+                       if relative.startswith("decisions/") and relative.endswith(".json"))
+    switching_decisions = sorted(relative for relative in switching_run["output_sha256"]
+                                 if relative.startswith("decisions/") and relative.endswith(".json"))
+    if not decisions or decisions != switching_decisions:
+        raise ValueError("Paired CVaR runs must cover the same rebalances")
+    for relative in decisions:
+        date = Path(relative).stem
+        fixed, mixed = (
+            json.loads(checked_artifact(folder, run, relative).read_text(encoding="utf-8"))
+            for folder, run in ((aware_results, aware_run), (switching_results, switching_run)))
+        cache_name = f"forecasts/{date}.npz"
+        path = checked_artifact(forecast_results, forecast_run, cache_name)
+        for decision in (fixed, mixed):
+            if (decision["origin"] != date or decision["scenario_key"] != "DCC GARCH"
+                    or decision["source_forecast_sha256"] != forecast_run["output_sha256"][cache_name]):
+                raise ValueError(f"{date}: paired CVaR decisions must use the same DCC-GARCH draws")
+        with np.load(path, allow_pickle=False) as saved:
+            cube = np.asarray(saved["DCC GARCH"], float)
+            days = saved["holding_days"]
+            cov = np.asarray([np.cov(cube[:, k], rowvar=False, ddof=1) for k in range(len(days))])
+            for name, experiment in experiments.items():
+                means = saved[f"means_{experiment}"]
+                matched = fixed["plans"][f"{experiment} | matched_return | H=3"]["metadata"]
+                targets = matched["gross_return_targets"]
+                assert_context = f"{date}, {name}"
+                np.testing.assert_array_equal(matched["holding_days"], days, err_msg=assert_context)
+                first = fixed["plans"][f"{experiment} | matched_return | H=1"]["metadata"]
+                np.testing.assert_array_equal(first["gross_return_targets"], targets[:1], err_msg=assert_context)
+                p_bear = None
+                if name != "Static":
+                    rows = signals[(signals.origin == date) & (signals.experiment == experiment)].sort_values("stage")
+                    np.testing.assert_array_equal(rows.stage, [1, 2, 3], err_msg=assert_context)
+                    np.testing.assert_array_equal(rows[list(ASSETS)], means, err_msg=assert_context)
+                    p_bear = rows.p_bear_month_end.to_numpy(float)
+                    regimes = switching.regime_path(p_bear, 3)
+                    switch_targets = [target if regime == "bull" else None
+                                      for target, regime in zip(targets, regimes)]
+                    for horizon in (1, 3):
+                        stage_plan = mixed["plans"][f"{experiment} | H={horizon}"]["metadata"]
+                        np.testing.assert_array_equal(stage_plan["stage_regimes"], regimes[:horizon],
+                                                      err_msg=assert_context)
+                        np.testing.assert_array_equal(stage_plan["gross_return_targets"], switch_targets[:horizon],
+                                                      err_msg=assert_context)
+                sources[name][date] = aware.Forecast(means, cov, p_bear, days, np.asarray(targets, float))
+    return sources
 
 
 def load_trading_days():
@@ -337,7 +340,8 @@ def load_trading_days():
 
 
 def with_trading_days(forecasts, days):
-    return {date: aware.Forecast(f.mu, f.cov, f.p_bear, days[date]) for date, f in forecasts.items()}
+    return {date: aware.Forecast(f.mu, f.cov, f.p_bear, days[date], f.return_targets)
+            for date, f in forecasts.items()}
 
 
 # ------------------------------------------------------------
@@ -380,7 +384,7 @@ def run_strategy(forecasts, months, decide, horizon, caps, label):
         rows.append({**label, "rebalance_date": date, **dict(zip(ASSETS, target)),
                      "executed_regime": regimes[0] if regimes else "",
                      "stage_regimes": "-".join(regimes), "stage_policies": "-".join(info["stages"]),
-                     "return_floor_month1": np.nan if info["floors"][0] is None else info["floors"][0],
+                     **{f"return_floor_month{k}": floor for k, floor in enumerate(info["floors"], 1)},
                      "p_bear_month1_end": np.nan if p is None else p[0],
                      "one_way_turnover": 0.5 * np.abs(target - w_prev).sum() if w_prev.any() else 0.0,
                      "fee": fee, "net_month_return": float(np.prod(1 + net) - 1)})
@@ -432,39 +436,36 @@ def performance(r, weights, labels):
     return out
 
 
-def common_hmm_labels():
-    """Common HMM forecast month-1-end labels by month, used for every model."""
-    probs = pd.read_csv(HMM_DIR / "regime_probabilities.csv")
-    return {str(pd.Timestamp(d).to_period("M")): switching.regime_path([p], 1)[0]
-            for d, p in zip(probs["rebalance_date"], probs["p_bear_month1_end"])}
-
-
-def main(selected=("aware", "switching"), horizons=HORIZONS):
+def main(selected=("aware", "switching"), horizons=HORIZONS, *,
+         forecast_results=FORECAST_RESULTS, aware_results=CVAR_AWARE_RESULTS,
+         switching_results=CVAR_SWITCHING_RESULTS):
     train, validation = find_returns("train"), find_returns("validation")
     if train.index[-1] >= validation.index[0]:
         raise ValueError("Training must precede validation")
-    sources = {"HMM": load_file_source(HMM_DIR), "Jump Model": load_file_source(JUMP_DIR),
-               "Regime regression": load_regression_source()}
-    if INCLUDE_STATIC:
-        sources["Static"] = load_static_source()
+    if RISK_MODEL == "DCC GARCH":
+        sources = load_paired_forecasts(Path(forecast_results), Path(aware_results), Path(switching_results))
+        days = {date: forecast.days for date, forecast in sources["HMM"].items()}
+    elif RISK_MODEL == "native":
+        sources = {"HMM": load_file_source(HMM_DIR), "Jump Model": load_file_source(JUMP_DIR),
+                   "Regime regression": load_regression_source()}
+        if INCLUDE_STATIC:
+            sources["Static"] = load_static_source()
+        days = load_trading_days()
+        if sorted(days) != sorted(sources["HMM"]):
+            raise ValueError(f"{TRADING_DAYS_FILE.name} covers different rebalance dates")
+        sources = {name: with_trading_days(f, days) for name, f in sources.items()}
+    else:
+        raise ValueError("RISK_MODEL must be 'DCC GARCH' or 'native'")
     dates = sorted(sources["HMM"])
     for name, forecasts in sources.items():
         if sorted(forecasts) != dates:
             raise ValueError(f"{name} forecasts cover different rebalance dates than HMM")
-    if RISK_MODEL == "DCC GARCH":
-        covariances = dcc_covariances(train, validation, dates)
-        sources = {name: with_covariances(f, covariances) for name, f in sources.items()}
-    elif RISK_MODEL != "native":
-        raise ValueError("RISK_MODEL must be 'DCC GARCH' or 'native'")
-    days = load_trading_days()
-    if sorted(days) != dates:
-        raise ValueError(f"{TRADING_DAYS_FILE.name} covers different rebalance dates")
-    sources = {name: with_trading_days(f, days) for name, f in sources.items()}
     months = month_slices(validation, dates)
     for i, date in enumerate(dates):        # realized month must match the forecast calendar
         if len(months[date]) != days[date][0] and not (i == len(dates) - 1 and len(months[date]) < days[date][0]):
             raise ValueError(f"{date}: realized month has {len(months[date])} days, calendar {days[date][0]}")
-    labels = common_hmm_labels()
+    labels = {str(pd.Timestamp(date).to_period("M")): switching.regime_path(forecast.p_bear, 1)[0]
+              for date, forecast in sources["HMM"].items()}
 
     strategies = [entry for key in selected for entry in MODELS[key]]
     results, weight_rows, daily = [], [], {}
@@ -501,7 +502,7 @@ def main(selected=("aware", "switching"), horizons=HORIZONS):
 
     pd.set_option("display.width", 240)
     pd.set_option("display.max_columns", None)
-    print(f"\nValidation: {dates[0]} to {validation.index.max().date()} ({len(dates)} rebalances) | "
+    print(f"\nValidation: {dates[0]} to {months[dates[-1]].index[-1].date()} ({len(dates)} rebalances) | "
           f"risk model {RISK_MODEL} | cost {COST_RATE * 1e4:g} bps | gamma {aware.RISK_AVERSION} | "
           f"regime: month-end P(bear) per stage, bull < 0.5 < bear")
     show = table.copy()
@@ -522,8 +523,15 @@ if __name__ == "__main__":
     parser.add_argument("--model", choices=("aware", "switching", "both"), default="both")
     parser.add_argument("--horizons", nargs="+", type=int, choices=HORIZONS, default=list(HORIZONS),
                         help="planning horizons in months (default: 1 2 3)")
+    parser.add_argument("--forecast-results", type=Path, default=FORECAST_RESULTS,
+                        help="completed CVaR forecast cache")
+    parser.add_argument("--cvar-aware-results", type=Path, default=CVAR_AWARE_RESULTS,
+                        help="completed fixed-policy all-DCC CVaR results")
+    parser.add_argument("--cvar-switching-results", type=Path, default=CVAR_SWITCHING_RESULTS,
+                        help="completed switching all-DCC CVaR results")
     args = parser.parse_args()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         main(("aware", "switching") if args.model == "both" else (args.model,),
-             tuple(sorted(set(args.horizons))))
+             tuple(sorted(set(args.horizons))), forecast_results=args.forecast_results,
+             aware_results=args.cvar_aware_results, switching_results=args.cvar_switching_results)
