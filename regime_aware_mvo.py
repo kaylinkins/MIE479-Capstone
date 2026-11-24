@@ -33,7 +33,10 @@ Matched with Kaylin's CVaR MPO (cvar_mpo.matched_return_targets /
 optimize_matched_cvar and regime_switching_cvar.optimize_switching_cvar):
   * Max-Sharpe floor of month k = mu_k' w_k^MS - 1e-6 x (trading days in
     month k), with w_k^MS the long-only, capped max-Sharpe portfolio of that
-    month's own mean and risk forecast (zero risk-free rate).
+    month's own mean and risk forecast. The max-Sharpe portfolio uses a 4%
+    annual risk-free rate (RISK_FREE_ANNUAL), compounded over the month's
+    trading days; the CVaR runs use 0%, so their shared floors are only used
+    when RISK_FREE_ANNUAL == SHARED_TARGET_RISK_FREE (see solve_stages).
   * One joint plan over all H months; only month 1 is executed.
   * Objective = risk weight x risk + 10 bps x one-way trading, no extra
     return reward; long-only, fully invested, caps (1, 1, 0.2).
@@ -53,7 +56,8 @@ from scipy.optimize import brentq
 
 RISK_AVERSION = 1.25     # gamma on monthly variance (lambda/2, lambda = 2.5)
 COST_RATE = 0.001        # 10 bps per dollar traded, used inside the objective
-RISK_FREE = 0.0          # monthly, for the max-Sharpe target
+RISK_FREE_ANNUAL = 0.04  # annual risk-free rate in the max-Sharpe portfolio that sets the return floor
+SHARED_TARGET_RISK_FREE = 0.0   # rate behind the floors saved by the CVaR runs (their protocol: risk_free 0)
 FLOOR_ALLOWANCE_PER_DAY = 1e-6   # floor = max-Sharpe return - 1e-6 per trading day (as in the CVaR MPO)
 
 POLICIES = ("Max Sharpe MVO", "Min Var MVO")
@@ -98,7 +102,13 @@ def project_capped_simplex(values, caps):
     return np.clip(values - shift, 0, caps)
 
 
-def max_sharpe_weights(mu, cov, caps, risk_free=RISK_FREE):
+def stage_risk_free(days=None, annual=RISK_FREE_ANNUAL):
+    """Risk-free return over one planned month: compounded over its trading days
+    (daily rate 1.04 ** (1/252) - 1), or over 1/12 year if the day count is unknown."""
+    return (1 + annual) ** ((1 / 12) if days is None else days / 252) - 1
+
+
+def max_sharpe_weights(mu, cov, caps, risk_free=0.0):
     """Long-only, capped maximum-Sharpe weights as a convex QP.
 
     Homogenized form: min y'Sy s.t. (mu - rf)'y = 1, sum(y) = kappa,
@@ -127,13 +137,21 @@ def solve_stages(current_weights, forecast, stages, caps,
 
     Returns (weights to hold now, {"stages": rules used, "floors": return
     floor per month (None for MV months), "plan": planned path}).
-    Without shared targets, an 'MS' month with no positive-excess portfolio falls back to 'MV'.
+    'MS' floor = mu_k' w_k^MS - 1e-6 x trading days, where w_k^MS maximizes the
+    Sharpe ratio over the month's risk-free return (stage_risk_free). Shared
+    floors (forecast.return_targets, saved by the CVaR runs) are used instead only
+    when RISK_FREE_ANNUAL equals the rate they were computed with
+    (SHARED_TARGET_RISK_FREE); otherwise they are ignored and the floor is
+    computed here. An 'MS' month in which no feasible portfolio beats the
+    risk-free return has no max-Sharpe portfolio and falls back to 'MV'.
     """
     horizon = len(stages)
     mus, covs = forecast.mu[:horizon], forecast.cov[:horizon]
     if forecast.days is not None and (len(forecast.days) < horizon or np.any(np.asarray(forecast.days) < 1)):
         raise ValueError("Provide a positive trading-day count for every planned month")
     targets = forecast.return_targets
+    if RISK_FREE_ANNUAL != SHARED_TARGET_RISK_FREE:
+        targets = None                      # saved floors assume a different risk-free rate
     if targets is not None:
         targets = np.asarray(targets, float)
         if targets.ndim != 1 or len(targets) < horizon or not np.isfinite(targets[:horizon]).all():
@@ -148,7 +166,8 @@ def solve_stages(current_weights, forecast, stages, caps,
         if stage == "MS" and targets is not None:
             floor = float(targets[k])
         elif stage == "MS":
-            target = max_sharpe_weights(mus[k], covs[k], caps)
+            days_k = None if forecast.days is None else forecast.days[k]
+            target = max_sharpe_weights(mus[k], covs[k], caps, stage_risk_free(days_k))
             if target is None:
                 stage = "MV"
             else:
