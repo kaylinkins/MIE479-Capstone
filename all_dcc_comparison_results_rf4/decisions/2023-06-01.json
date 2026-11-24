@@ -1,0 +1,2340 @@
+{
+  "origin": "2023-06-01",
+  "information_date": "2023-05-31",
+  "source_forecast_path": "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\forecast_comparison_results_rf4\\forecasts\\2023-06-01.npz",
+  "source_forecast_sha256": "4f8a82b1e89cfb64074f18b293c83c06894342c72fd0451c5ade685e21fbb79b",
+  "scenario_key": "DCC GARCH",
+  "current_month_outcomes_supplied_to_decisions": 0,
+  "plans": {
+    "hmm | min_cvar | H=1": {
+      "weights": [
+        [
+          0.1730134530674047,
+          0.8269865469325953,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.018548805808792534,
+          -0.018548805808793145,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.15446464725861217,
+        0.8455353527413885,
+        0.0
+      ],
+      "expected_returns": [
+        0.0024670741463774532
+      ],
+      "forecast_var": [
+        0.0230684535361887
+      ],
+      "forecast_cvar": [
+        0.03447919988184001
+      ],
+      "estimated_costs": [
+        3.709761161758568e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.017276697552537593,
+      "solver_minimum": 0.017276697552537603,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "HMM",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 10,
+        "tail_cuts": 14,
+        "warm_tail_cuts": 0,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.017276697552537603,
+        "minimization_upper_bound": 0.017276697552537593,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "hmm | min_cvar | H=3": {
+      "weights": [
+        [
+          0.16141649991947946,
+          0.8385835000805205,
+          0.0
+        ],
+        [
+          0.13096365862238055,
+          0.8690363413776194,
+          0.0
+        ],
+        [
+          0.11643926062121612,
+          0.8835607393787839,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.024642560677229336,
+          -0.024642560677229808,
+          0.0
+        ],
+        [
+          -0.03045284129709891,
+          0.03045284129709891,
+          0.0
+        ],
+        [
+          -0.014524398001164424,
+          0.014524398001164451,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.13677393924225012,
+        0.8632260607577503,
+        0.0
+      ],
+      "expected_returns": [
+        0.0023634580484286375,
+        0.0019421045315564868,
+        0.0020560029858960726
+      ],
+      "forecast_var": [
+        0.023140325286012547,
+        0.022503268748838637,
+        0.024521160380653606
+      ],
+      "forecast_cvar": [
+        0.03455371749021249,
+        0.03750841254677486,
+        0.040554843754333034
+      ],
+      "estimated_costs": [
+        4.928512135445914e-05,
+        6.090568259419782e-05,
+        2.9048796002328874e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05644772649561118,
+      "solver_minimum": 0.05644772649561121,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "HMM",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 9,
+        "tail_cuts": 44,
+        "warm_tail_cuts": 14,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 6.938893903907228e-18,
+        "minimization_lower_bound": 0.05644772649561121,
+        "minimization_upper_bound": 0.05644772649561118,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "hmm | matched_return | H=1": {
+      "weights": [
+        [
+          0.653687814055834,
+          0.14631218594416553,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.6501287940505381,
+          -0.6604872279627273,
+          0.010358433912188325
+        ]
+      ],
+      "pretrade_weights": [
+        0.0035590200052958874,
+        0.8067994139068928,
+        0.18964156608781169
+      ],
+      "expected_returns": [
+        0.02009132507908549
+      ],
+      "forecast_var": [
+        0.0677953736837949
+      ],
+      "forecast_cvar": [
+        0.1013266091544435
+      ],
+      "estimated_costs": [
+        0.0013209744559254538
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.0519842790331472,
+      "solver_minimum": 0.05198427903314723,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "HMM",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02009132507908549
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 3,
+        "tail_cuts": 22,
+        "warm_tail_cuts": 19,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.05198427903314723,
+        "minimization_upper_bound": 0.0519842790331472,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02009132507908549
+          ],
+          "weights": [
+            [
+              0.6560381825885957,
+              0.1439618174114044,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "hmm | matched_return | H=3": {
+      "weights": [
+        [
+          0.653687814055834,
+          0.14631218594416553,
+          0.2
+        ],
+        [
+          0.797602515249008,
+          0.002397484750992458,
+          0.2
+        ],
+        [
+          0.7975708048027953,
+          0.0024291951972038304,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.6364781944993012,
+          -0.6469335726964777,
+          0.010455378197176374
+        ],
+        [
+          0.14391470119317407,
+          -0.14391470119317307,
+          0.0
+        ],
+        [
+          -3.171044621275154e-05,
+          3.171044621137244e-05,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.017209619556532756,
+        0.7932457586406432,
+        0.18954462180282364
+      ],
+      "expected_returns": [
+        0.02009132507908549,
+        0.020086345880126366,
+        0.022976302761990582
+      ],
+      "forecast_var": [
+        0.0677953736837949,
+        0.08807304535693229,
+        0.10950674152612962
+      ],
+      "forecast_cvar": [
+        0.1013266091544435,
+        0.13712124522156557,
+        0.16396768180172633
+      ],
+      "estimated_costs": [
+        0.0012938671453929555,
+        0.00028782940238634714,
+        6.342089242412398e-08
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.20278952805753941,
+      "solver_minimum": 0.20278952805753958,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "HMM",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02009132507908549,
+          0.020086345880126366,
+          0.022976302761990582
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 3,
+        "tail_cuts": 54,
+        "warm_tail_cuts": 47,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 2.7755575615628914e-17,
+        "minimization_lower_bound": 0.20278952805753958,
+        "minimization_upper_bound": 0.20278952805753941,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646,
+            0.0031176046646692415,
+            0.0035860829282696365
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02009132507908549,
+            0.020086345880126366,
+            0.022976302761990582
+          ],
+          "weights": [
+            [
+              0.6560381825885957,
+              0.1439618174114044,
+              0.2
+            ],
+            [
+              0.7999999999999999,
+              3.642919299551295e-17,
+              0.2
+            ],
+            [
+              0.7999999999999999,
+              0.0,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "jump | min_cvar | H=1": {
+      "weights": [
+        [
+          0.1730134530674047,
+          0.8269865469325953,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.018548805808792534,
+          -0.018548805808793145,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.15446464725861217,
+        0.8455353527413885,
+        0.0
+      ],
+      "expected_returns": [
+        0.0025481520988193743
+      ],
+      "forecast_var": [
+        0.0230684535361887
+      ],
+      "forecast_cvar": [
+        0.03447919988184001
+      ],
+      "estimated_costs": [
+        3.709761161758568e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.017276697552537593,
+      "solver_minimum": 0.017276697552537603,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Jump Model",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 23,
+        "warm_tail_cuts": 23,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.017276697552537603,
+        "minimization_upper_bound": 0.017276697552537593,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "jump | min_cvar | H=3": {
+      "weights": [
+        [
+          0.16141649991947946,
+          0.8385835000805205,
+          0.0
+        ],
+        [
+          0.13096365862238055,
+          0.8690363413776194,
+          0.0
+        ],
+        [
+          0.11643926062121612,
+          0.8835607393787839,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.024642560677229336,
+          -0.024642560677229808,
+          0.0
+        ],
+        [
+          -0.03045284129709891,
+          0.03045284129709891,
+          0.0
+        ],
+        [
+          -0.014524398001164424,
+          0.014524398001164451,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.13677393924225012,
+        0.8632260607577503,
+        0.0
+      ],
+      "expected_returns": [
+        0.002442028748574998,
+        0.0020600176576778062,
+        0.0022244814669774727
+      ],
+      "forecast_var": [
+        0.023140325286012547,
+        0.022503268748838637,
+        0.024521160380653606
+      ],
+      "forecast_cvar": [
+        0.03455371749021249,
+        0.03750841254677486,
+        0.040554843754333034
+      ],
+      "estimated_costs": [
+        4.928512135445914e-05,
+        6.090568259419782e-05,
+        2.9048796002328874e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05644772649561118,
+      "solver_minimum": 0.05644772649561121,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Jump Model",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 54,
+        "warm_tail_cuts": 54,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 6.938893903907228e-18,
+        "minimization_lower_bound": 0.05644772649561121,
+        "minimization_upper_bound": 0.05644772649561118,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "jump | matched_return | H=1": {
+      "weights": [
+        [
+          0.6605302332583729,
+          0.13946976674162762,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.09200026582622123,
+          -0.10373336788615284,
+          0.011733102059932776
+        ]
+      ],
+      "pretrade_weights": [
+        0.5685299674321517,
+        0.24320313462778045,
+        0.18826689794006723
+      ],
+      "expected_returns": [
+        0.020426832104599127
+      ],
+      "forecast_var": [
+        0.06807744087591173
+      ],
+      "forecast_cvar": [
+        0.10180328179382203
+      ],
+      "estimated_costs": [
+        0.00020746673577230686
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05110910763268332,
+      "solver_minimum": 0.051109107632683344,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Jump Model",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.020426832104599127
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 2,
+        "tail_cuts": 25,
+        "warm_tail_cuts": 23,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.051109107632683344,
+        "minimization_upper_bound": 0.05110910763268332,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.020426832104599127
+          ],
+          "weights": [
+            [
+              0.6628250723823322,
+              0.13717492761766792,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "jump | matched_return | H=3": {
+      "weights": [
+        [
+          0.6605302332583729,
+          0.13946976674162762,
+          0.2
+        ],
+        [
+          0.7977045574191524,
+          0.002295442580847706,
+          0.2
+        ],
+        [
+          0.7977063674216122,
+          0.0022936325783882903,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.09200026582622123,
+          -0.10373336788615284,
+          0.011733102059932776
+        ],
+        [
+          0.13717432416077946,
+          -0.1371743241607799,
+          0.0
+        ],
+        [
+          1.8100024598011188e-06,
+          -1.8100024594155766e-06,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.5685299674321517,
+        0.24320313462778045,
+        0.18826689794006723
+      ],
+      "expected_returns": [
+        0.020426832104599127,
+        0.020627263773001926,
+        0.023798681099347282
+      ],
+      "forecast_var": [
+        0.06807744087591173,
+        0.08807690768274125,
+        0.1095060648905275
+      ],
+      "forecast_cvar": [
+        0.10180328179382203,
+        0.13712994590180883,
+        0.16398185659255202
+      ],
+      "estimated_costs": [
+        0.00020746673577230686,
+        0.00027434864832155936,
+        3.6200049192166954e-09
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.20193936114819025,
+      "solver_minimum": 0.20193936114819033,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Jump Model",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.020426832104599127,
+          0.020627263773001926,
+          0.023798681099347282
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 58,
+        "warm_tail_cuts": 56,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 2.7755575615628914e-17,
+        "minimization_lower_bound": 0.20193936114819033,
+        "minimization_upper_bound": 0.20193936114819025,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646,
+            0.0031176046646692415,
+            0.0035860829282696365
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.020426832104599127,
+            0.020627263773001926,
+            0.023798681099347282
+          ],
+          "weights": [
+            [
+              0.6628250723823322,
+              0.13717492761766792,
+              0.2
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "regression_hmm | min_cvar | H=1": {
+      "weights": [
+        [
+          0.1730134530674047,
+          0.8269865469325953,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.018548805808792534,
+          -0.018548805808793145,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.15446464725861217,
+        0.8455353527413885,
+        0.0
+      ],
+      "expected_returns": [
+        0.004173989129891725
+      ],
+      "forecast_var": [
+        0.0230684535361887
+      ],
+      "forecast_cvar": [
+        0.03447919988184001
+      ],
+      "estimated_costs": [
+        3.709761161758568e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.017276697552537593,
+      "solver_minimum": 0.017276697552537603,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 25,
+        "warm_tail_cuts": 25,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.017276697552537603,
+        "minimization_upper_bound": 0.017276697552537593,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "regression_hmm | min_cvar | H=3": {
+      "weights": [
+        [
+          0.16141649991947946,
+          0.8385835000805205,
+          0.0
+        ],
+        [
+          0.13096365862238055,
+          0.8690363413776194,
+          0.0
+        ],
+        [
+          0.11643926062121612,
+          0.8835607393787839,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.024642560677229336,
+          -0.024642560677229808,
+          0.0
+        ],
+        [
+          -0.03045284129709891,
+          0.03045284129709891,
+          0.0
+        ],
+        [
+          -0.014524398001164424,
+          0.014524398001164451,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.13677393924225012,
+        0.8632260607577503,
+        0.0
+      ],
+      "expected_returns": [
+        0.004012654966549856,
+        0.003418491465994737,
+        0.0036685674793714407
+      ],
+      "forecast_var": [
+        0.023140325286012547,
+        0.022503268748838637,
+        0.024521160380653606
+      ],
+      "forecast_cvar": [
+        0.03455371749021249,
+        0.03750841254677486,
+        0.040554843754333034
+      ],
+      "estimated_costs": [
+        4.928512135445914e-05,
+        6.090568259419782e-05,
+        2.9048796002328874e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05644772649561118,
+      "solver_minimum": 0.05644772649561121,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 58,
+        "warm_tail_cuts": 58,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 6.938893903907228e-18,
+        "minimization_lower_bound": 0.05644772649561121,
+        "minimization_upper_bound": 0.05644772649561118,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "regression_hmm | matched_return | H=1": {
+      "weights": [
+        [
+          0.7520652544762364,
+          0.047934745523763346,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.7520652544762364,
+          -0.7627607809276831,
+          0.010695526451445336
+        ]
+      ],
+      "pretrade_weights": [
+        0.0,
+        0.8106955264514464,
+        0.18930447354855467
+      ],
+      "expected_returns": [
+        0.02828462070657929
+      ],
+      "forecast_var": [
+        0.07202170948203665
+      ],
+      "forecast_cvar": [
+        0.10844717385798258
+      ],
+      "estimated_costs": [
+        0.001525521561855365
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.055749108490846654,
+      "solver_minimum": 0.055749108490846695,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02828462070657929
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 2,
+        "tail_cuts": 27,
+        "warm_tail_cuts": 25,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.055749108490846695,
+        "minimization_upper_bound": 0.055749108490846654,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02828462070657929
+          ],
+          "weights": [
+            [
+              0.753574767471264,
+              0.046425232528736024,
+              0.19999999999999998
+            ]
+          ]
+        }
+      }
+    },
+    "regression_hmm | matched_return | H=3": {
+      "weights": [
+        [
+          0.7520652544762364,
+          0.047934745523763346,
+          0.2
+        ],
+        [
+          0.7984902957247795,
+          0.0015097042752192822,
+          0.2
+        ],
+        [
+          0.7984768787985407,
+          0.0015231212014600406,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.7520652544762364,
+          -0.7627607809276831,
+          0.010695526451445336
+        ],
+        [
+          0.046425041248543075,
+          -0.04642504124854406,
+          0.0
+        ],
+        [
+          -1.34169262387962e-05,
+          1.341692624075839e-05,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.0,
+        0.8106955264514464,
+        0.18930447354855467
+      ],
+      "expected_returns": [
+        0.02828462070657929,
+        0.02752433378600787,
+        0.03153837992048595
+      ],
+      "forecast_var": [
+        0.07202170948203665,
+        0.08810664810606439,
+        0.10950221902627671
+      ],
+      "forecast_cvar": [
+        0.10844717385798258,
+        0.13719694229891097,
+        0.16406242332763046
+      ],
+      "estimated_costs": [
+        0.001525521561855365,
+        9.285008249708713e-05,
+        2.683385247955459e-08
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.20647166822046695,
+      "solver_minimum": 0.20647166822046709,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02828462070657929,
+          0.02752433378600787,
+          0.03153837992048595
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 62,
+        "warm_tail_cuts": 60,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 2.7755575615628914e-17,
+        "minimization_lower_bound": 0.20647166822046709,
+        "minimization_upper_bound": 0.20647166822046695,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646,
+            0.0031176046646692415,
+            0.0035860829282696365
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02828462070657929,
+            0.02752433378600787,
+            0.03153837992048595
+          ],
+          "weights": [
+            [
+              0.753574767471264,
+              0.046425232528736024,
+              0.19999999999999998
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "regression_dcc | min_cvar | H=1": {
+      "weights": [
+        [
+          0.1730134530674047,
+          0.8269865469325953,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.018548805808792534,
+          -0.018548805808793145,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.15446464725861217,
+        0.8455353527413885,
+        0.0
+      ],
+      "expected_returns": [
+        0.004173989129891725
+      ],
+      "forecast_var": [
+        0.0230684535361887
+      ],
+      "forecast_cvar": [
+        0.03447919988184001
+      ],
+      "estimated_costs": [
+        3.709761161758568e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.017276697552537593,
+      "solver_minimum": 0.017276697552537603,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 27,
+        "warm_tail_cuts": 27,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.017276697552537603,
+        "minimization_upper_bound": 0.017276697552537593,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "regression_dcc | min_cvar | H=3": {
+      "weights": [
+        [
+          0.16141649991947946,
+          0.8385835000805205,
+          0.0
+        ],
+        [
+          0.13096365862238055,
+          0.8690363413776194,
+          0.0
+        ],
+        [
+          0.11643926062121612,
+          0.8835607393787839,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.024642560677229336,
+          -0.024642560677229808,
+          0.0
+        ],
+        [
+          -0.03045284129709891,
+          0.03045284129709891,
+          0.0
+        ],
+        [
+          -0.014524398001164424,
+          0.014524398001164451,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.13677393924225012,
+        0.8632260607577503,
+        0.0
+      ],
+      "expected_returns": [
+        0.004012654966549856,
+        0.003418491465994737,
+        0.0036685674793714407
+      ],
+      "forecast_var": [
+        0.023140325286012547,
+        0.022503268748838637,
+        0.024521160380653606
+      ],
+      "forecast_cvar": [
+        0.03455371749021249,
+        0.03750841254677486,
+        0.040554843754333034
+      ],
+      "estimated_costs": [
+        4.928512135445914e-05,
+        6.090568259419782e-05,
+        2.9048796002328874e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05644772649561118,
+      "solver_minimum": 0.05644772649561121,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 62,
+        "warm_tail_cuts": 62,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 6.938893903907228e-18,
+        "minimization_lower_bound": 0.05644772649561121,
+        "minimization_upper_bound": 0.05644772649561118,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "regression_dcc | matched_return | H=1": {
+      "weights": [
+        [
+          0.7520652544762364,
+          0.047934745523763346,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.7520652544762364,
+          -0.7627607809276831,
+          0.010695526451445336
+        ]
+      ],
+      "pretrade_weights": [
+        0.0,
+        0.8106955264514464,
+        0.18930447354855467
+      ],
+      "expected_returns": [
+        0.02828462070657929
+      ],
+      "forecast_var": [
+        0.07202170948203665
+      ],
+      "forecast_cvar": [
+        0.10844717385798258
+      ],
+      "estimated_costs": [
+        0.001525521561855365
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.055749108490846654,
+      "solver_minimum": 0.055749108490846695,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02828462070657929
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 27,
+        "warm_tail_cuts": 27,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.055749108490846695,
+        "minimization_upper_bound": 0.055749108490846654,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02828462070657929
+          ],
+          "weights": [
+            [
+              0.753574767471264,
+              0.046425232528736024,
+              0.19999999999999998
+            ]
+          ]
+        }
+      }
+    },
+    "regression_dcc | matched_return | H=3": {
+      "weights": [
+        [
+          0.7520652544762364,
+          0.047934745523763346,
+          0.2
+        ],
+        [
+          0.7984902957247795,
+          0.0015097042752192822,
+          0.2
+        ],
+        [
+          0.7984768787985407,
+          0.0015231212014600406,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.7520652544762364,
+          -0.7627607809276831,
+          0.010695526451445336
+        ],
+        [
+          0.046425041248543075,
+          -0.04642504124854406,
+          0.0
+        ],
+        [
+          -1.34169262387962e-05,
+          1.341692624075839e-05,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.0,
+        0.8106955264514464,
+        0.18930447354855467
+      ],
+      "expected_returns": [
+        0.02828462070657929,
+        0.02752433378600787,
+        0.03153837992048595
+      ],
+      "forecast_var": [
+        0.07202170948203665,
+        0.08810664810606439,
+        0.10950221902627671
+      ],
+      "forecast_cvar": [
+        0.10844717385798258,
+        0.13719694229891097,
+        0.16406242332763046
+      ],
+      "estimated_costs": [
+        0.001525521561855365,
+        9.285008249708713e-05,
+        2.683385247955459e-08
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.20647166822046695,
+      "solver_minimum": 0.20647166822046709,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Regime regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.02828462070657929,
+          0.02752433378600787,
+          0.03153837992048595
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 62,
+        "warm_tail_cuts": 62,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 2.7755575615628914e-17,
+        "minimization_lower_bound": 0.20647166822046709,
+        "minimization_upper_bound": 0.20647166822046695,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646,
+            0.0031176046646692415,
+            0.0035860829282696365
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.02828462070657929,
+            0.02752433378600787,
+            0.03153837992048595
+          ],
+          "weights": [
+            [
+              0.753574767471264,
+              0.046425232528736024,
+              0.19999999999999998
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ],
+            [
+              0.8,
+              0.0,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "static_dcc | min_cvar | H=1": {
+      "weights": [
+        [
+          0.1730134530674047,
+          0.8269865469325953,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.018548805808792534,
+          -0.018548805808793145,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.15446464725861217,
+        0.8455353527413885,
+        0.0
+      ],
+      "expected_returns": [
+        0.0026258531642879405
+      ],
+      "forecast_var": [
+        0.0230684535361887
+      ],
+      "forecast_cvar": [
+        0.03447919988184001
+      ],
+      "estimated_costs": [
+        3.709761161758568e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.017276697552537593,
+      "solver_minimum": 0.017276697552537603,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Static regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 27,
+        "warm_tail_cuts": 27,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.017276697552537603,
+        "minimization_upper_bound": 0.017276697552537593,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "static_dcc | min_cvar | H=3": {
+      "weights": [
+        [
+          0.16141649991947946,
+          0.8385835000805205,
+          0.0
+        ],
+        [
+          0.13096365862238055,
+          0.8690363413776194,
+          0.0
+        ],
+        [
+          0.11643926062121612,
+          0.8835607393787839,
+          0.0
+        ]
+      ],
+      "trades": [
+        [
+          0.024642560677229336,
+          -0.024642560677229808,
+          0.0
+        ],
+        [
+          -0.03045284129709891,
+          0.03045284129709891,
+          0.0
+        ],
+        [
+          -0.014524398001164424,
+          0.014524398001164451,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.13677393924225012,
+        0.8632260607577503,
+        0.0
+      ],
+      "expected_returns": [
+        0.0025319848077495614,
+        0.0022854926362265464,
+        0.0021679288802392647
+      ],
+      "forecast_var": [
+        0.023140325286012547,
+        0.022503268748838637,
+        0.024521160380653606
+      ],
+      "forecast_cvar": [
+        0.03455371749021249,
+        0.03750841254677486,
+        0.040554843754333034
+      ],
+      "estimated_costs": [
+        4.928512135445914e-05,
+        6.090568259419782e-05,
+        2.9048796002328874e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.05644772649561118,
+      "solver_minimum": 0.05644772649561121,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Static regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": null,
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 1,
+        "tail_cuts": 62,
+        "warm_tail_cuts": 62,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 6.938893903907228e-18,
+        "minimization_lower_bound": 0.05644772649561121,
+        "minimization_upper_bound": 0.05644772649561118,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "min_cvar",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": null
+      }
+    },
+    "static_dcc | matched_return | H=1": {
+      "weights": [
+        [
+          0.5408616689190119,
+          0.2591383310809879,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.06672031237409015,
+          -0.07817151676019723,
+          0.011451204386106889
+        ]
+      ],
+      "pretrade_weights": [
+        0.47414135654492173,
+        0.3373098478411851,
+        0.18854879561389312
+      ],
+      "expected_returns": [
+        0.020052510253539525
+      ],
+      "forecast_var": [
+        0.06378269411751117
+      ],
+      "forecast_cvar": [
+        0.09398117206712323
+      ],
+      "estimated_costs": [
+        0.00015634303352039428
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.047146929067082004,
+      "solver_minimum": 0.04714692906708203,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 1,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Static regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.020052510253539525
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 2,
+        "tail_cuts": 29,
+        "warm_tail_cuts": 27,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.04714692906708203,
+        "minimization_upper_bound": 0.047146929067082004,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.020052510253539525
+          ],
+          "weights": [
+            [
+              0.5434561110194959,
+              0.25654388898050423,
+              0.2
+            ]
+          ]
+        }
+      }
+    },
+    "static_dcc | matched_return | H=3": {
+      "weights": [
+        [
+          0.5408616689190119,
+          0.2591383310809879,
+          0.2
+        ],
+        [
+          0.6412220497678931,
+          0.15877795023210675,
+          0.2
+        ],
+        [
+          0.6821840868970541,
+          0.11781591310294592,
+          0.2
+        ]
+      ],
+      "trades": [
+        [
+          0.06672031237409015,
+          -0.07817151676019723,
+          0.011451204386106889
+        ],
+        [
+          0.10036038084888121,
+          -0.10036038084888113,
+          0.0
+        ],
+        [
+          0.04096203712916102,
+          -0.04096203712916083,
+          0.0
+        ]
+      ],
+      "pretrade_weights": [
+        0.47414135654492173,
+        0.3373098478411851,
+        0.18854879561389312
+      ],
+      "expected_returns": [
+        0.020052510253539525,
+        0.020864849830296003,
+        0.021196405805105328
+      ],
+      "forecast_var": [
+        0.06378269411751117,
+        0.08078516260436062,
+        0.10257199715650567
+      ],
+      "forecast_cvar": [
+        0.09398117206712323,
+        0.12447301040565859,
+        0.15240991846976656
+      ],
+      "estimated_costs": [
+        0.00015634303352039428,
+        0.00020072076169776236,
+        8.192407425832186e-05
+      ],
+      "cost_rates": [
+        0.001,
+        0.001,
+        0.001
+      ],
+      "objective": -0.18587103834075067,
+      "solver_minimum": 0.18587103834075078,
+      "alpha": 0.95,
+      "metadata": {
+        "horizon": 3,
+        "scenario_count": 10000,
+        "assets": [
+          "Equity",
+          "Bond",
+          "BTC"
+        ],
+        "risk_measure": "sum of gross per-period CVaRs; not terminal-wealth or nested CVaR",
+        "risk_aversion": 0.5,
+        "return_reward": 0.0,
+        "expected_return_source": "Static regression",
+        "planning_dynamics": "future trade = next planned weights minus previous planned weights; return drift ignored only in planning",
+        "execution": "execute first allocation only; apply exact drift and self-financing fees, then replan",
+        "terminal_policy": "no forced liquidation or terminal fee",
+        "solver": "scipy.optimize.linprog(method='highs'); exact tail-average constraint generation",
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "upper": [
+          1.0,
+          1.0,
+          0.2
+        ],
+        "gross_return_targets": [
+          0.020052510253539525,
+          0.020864849830296003,
+          0.021196405805105328
+        ],
+        "gross_cvar_budgets": null,
+        "backend": "exact finite-ensemble CVaR constraint generation",
+        "constraint_generation_fallback": null,
+        "constraint_generation_iterations": 2,
+        "tail_cuts": 68,
+        "warm_tail_cuts": 64,
+        "separation_tolerance": 1e-10,
+        "max_separation_gap": 0.0,
+        "minimization_lower_bound": 0.18587103834075078,
+        "minimization_upper_bound": 0.18587103834075067,
+        "objective_certification_gap": 0.0,
+        "scenario_reduction": false,
+        "policy": "matched_return",
+        "scenario_source": "DCC GARCH",
+        "holding_days": [
+          21,
+          20,
+          23
+        ],
+        "scenario_mean_translation": false,
+        "regime_volatility_overlay": false,
+        "return_floor_reference": {
+          "method": "Original multistart SLSQP with explicit forecast means",
+          "floor_definition": "Forecast mean dot max-Sharpe weights minus 1e-6 times holding days",
+          "covariance_source": "Unshifted native scenario sample covariance",
+          "upper": [
+            1.0,
+            1.0,
+            0.2
+          ],
+          "risk_free": [
+            0.0032737397821988646,
+            0.0031176046646692415,
+            0.0035860829282696365
+          ],
+          "annual_risk_free": 0.04,
+          "targets": [
+            0.020052510253539525,
+            0.020864849830296003,
+            0.021196405805105328
+          ],
+          "weights": [
+            [
+              0.5434561110194959,
+              0.25654388898050423,
+              0.2
+            ],
+            [
+              0.6436929470064492,
+              0.15630705299355083,
+              0.2
+            ],
+            [
+              0.6850256187213939,
+              0.11497438127860604,
+              0.2
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

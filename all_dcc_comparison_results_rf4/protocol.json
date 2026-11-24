@@ -1,0 +1,67 @@
+{
+  "experiments": {
+    "hmm": {
+      "forecast": "HMM",
+      "original_scenarios": "HMM",
+      "scenarios": "DCC GARCH"
+    },
+    "jump": {
+      "forecast": "Jump Model",
+      "original_scenarios": "Jump Model",
+      "scenarios": "DCC GARCH"
+    },
+    "regression_hmm": {
+      "forecast": "Regime regression",
+      "original_scenarios": "HMM",
+      "scenarios": "DCC GARCH"
+    },
+    "regression_dcc": {
+      "forecast": "Regime regression",
+      "original_scenarios": "DCC GARCH",
+      "scenarios": "DCC GARCH"
+    },
+    "static_dcc": {
+      "forecast": "Static regression",
+      "original_scenarios": "DCC GARCH",
+      "scenarios": "DCC GARCH"
+    }
+  },
+  "policies": [
+    "min_cvar",
+    "matched_return"
+  ],
+  "horizons": [
+    1,
+    3
+  ],
+  "n_scenarios": 10000,
+  "seed": 42,
+  "alpha": 0.95,
+  "risk_aversion": 0.5,
+  "return_reward": 0.0,
+  "cost_rate": 0.001,
+  "upper": [
+    1.0,
+    1.0,
+    0.2
+  ],
+  "risk_free": 0.04,
+  "initial_holdings": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "evaluation_start": "2022-02-01",
+  "evaluation_end": "2024-05-31",
+  "evaluation_months": 28,
+  "source_forecast_results": "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\forecast_comparison_results_rf4",
+  "source_forecast_fingerprint": "5a1e296f2a3a6b87cd3461ccc47ae2e6edfd9a571ba97f46a28b80a741b5211d",
+  "scenario_source": "DCC GARCH for every configuration",
+  "scenario_mean_translation": false,
+  "regime_volatility_overlay": false,
+  "policy_switching": false,
+  "regime_regression_selection": "Same forecast month-end bull/bear conditional means as previous comparison",
+  "execution": "Monthly reoptimization; first allocation only; exact fees and daily drift",
+  "terminal_liquidation": false,
+  "duplicate_regression_slots_retained": true
+}
