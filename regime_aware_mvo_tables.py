@@ -22,13 +22,15 @@ tuned jump-model forecasts. One table per covariance source in COVARIANCE_SOURCE
 The expected returns and regime probabilities always come from the HMM or jump model.
 
 Return floors (bull / Max Sharpe stages): mu_k . w_k^MS - 1e-6 x trading days, the
-definition used by the CVaR regime-aware and regime-switching runs. For "DCC GARCH"
-and "Native scenarios" the floors are read from those runs, so MVO and CVaR face the
-identical return constraint. No CVaR run uses EWMA, so the EWMA table computes the
-floor itself with the same definition, using the EWMA covariance.
+definition used by the CVaR regime-aware and regime-switching runs, where w_k^MS is
+the max-Sharpe portfolio over a risk-free rate of regime_aware_mvo.RISK_FREE_ANNUAL
+(4% by default, compounded over the month's trading days). The CVaR runs saved their
+floors with a 0% rate; those saved floors are used only if RISK_FREE_ANNUAL is set
+back to 0, otherwise every table computes its floor with the same definition and
+the 4% rate. No CVaR run uses EWMA, so the EWMA table always computes its own.
 
-Settings match the regime-aware CVaR run: matched max-Sharpe floor with zero
-risk-free rate in the optimizer, 10 bps cost, caps (1, 1, 0.2), start in cash.
+Other settings match the regime-aware CVaR run: 10 bps cost, caps (1, 1, 0.2),
+start in cash.
 
 Metrics (definitions reproduce the regime-aware CVaR tables exactly):
   Net CAGR            prod(1 + r) ** (252 / days) - 1, over the days in that regime
@@ -244,6 +246,7 @@ def build_tables(run, heading, csv_path, md_path):
               "DCC GARCH": "DCC-GARCH scenario covariance (paired with the CVaR runs)",
               "Native scenarios": "Native regime-model scenarios (paired with the CVaR native run)"}
     parts = [heading + " H=3, validation Feb 2022 - May 2024. Sharpe uses rf = 4%. "
+             f"Max-Sharpe return target uses rf = {aware.RISK_FREE_ANNUAL:.0%}. "
              "Bull/bear rows = common HMM labels.\n"]
     for i, source in enumerate(COVARIANCE_SOURCES, 1):
         if source in skipped:
