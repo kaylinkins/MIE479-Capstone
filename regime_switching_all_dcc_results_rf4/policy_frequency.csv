@@ -1,0 +1,9 @@
+experiment,forecast,scenarios,horizon,executed_bull_months,executed_bear_months,planned_bull_stages,planned_bear_stages
+hmm,HMM,DCC GARCH,1,7,21,7,21
+hmm,HMM,DCC GARCH,3,7,21,39,45
+jump,Jump Model,DCC GARCH,1,12,16,12,16
+jump,Jump Model,DCC GARCH,3,12,16,36,48
+regression_hmm,Regime regression,DCC GARCH,1,7,21,7,21
+regression_hmm,Regime regression,DCC GARCH,3,7,21,39,45
+regression_dcc,Regime regression,DCC GARCH,1,7,21,7,21
+regression_dcc,Regime regression,DCC GARCH,3,7,21,39,45

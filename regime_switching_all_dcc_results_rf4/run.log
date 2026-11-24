@@ -1,0 +1,52 @@
+01/28 2022-02-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+02/28 2022-03-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+03/28 2022-04-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+04/28 2022-05-02 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+05/28 2022-06-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+06/28 2022-07-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+07/28 2022-08-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+08/28 2022-09-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+09/28 2022-10-03 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+10/28 2022-11-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+11/28 2022-12-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+12/28 2023-01-03 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+13/28 2023-02-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+14/28 2023-03-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+15/28 2023-04-03 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+16/28 2023-05-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+17/28 2023-06-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+18/28 2023-07-03 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+19/28 2023-08-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+20/28 2023-09-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+21/28 2023-10-02 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+22/28 2023-11-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+23/28 2023-12-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+24/28 2024-01-02 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+25/28 2024-02-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+26/28 2024-03-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+27/28 2024-04-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+28/28 2024-05-01 | 8 stage-switching portfolios | DCC-GARCH scenarios throughout
+
+| Forecasts | H | Net return | Ann. Sharpe | Max drawdown | BTC | Equities | Bonds |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| HMM | 1 | 24.16% | 0.994 | -15.17% | 4.72% | 24.29% | 70.99% |
+| HMM | 3 | 24.12% | 0.992 | -15.18% | 4.74% | 23.88% | 71.38% |
+| Jump Model | 1 | 31.32% | 1.100 | -15.17% | 8.43% | 35.79% | 55.78% |
+| Jump Model | 3 | 31.14% | 1.094 | -15.19% | 8.43% | 35.57% | 56.00% |
+| Regime regression A | 1 | 24.82% | 1.019 | -15.17% | 4.67% | 24.46% | 70.87% |
+| Regime regression A | 3 | 24.82% | 1.018 | -15.20% | 4.67% | 24.21% | 71.12% |
+| Regime regression B | 1 | 24.82% | 1.019 | -15.17% | 4.67% | 24.46% | 70.87% |
+| Regime regression B | 3 | 24.82% | 1.018 | -15.20% | 4.67% | 24.21% | 71.12% |
+
+
+Common HMM conditional annualized Sharpe:
+    experiment          forecast scenarios  horizon  bull_sharpe  bull_days  bull_months  bear_sharpe  bear_days  bear_months
+           hmm               HMM DCC GARCH        1     3.407039        146            7    -0.357357        440           21
+           hmm               HMM DCC GARCH        3     3.406753        146            7    -0.358423        440           21
+          jump        Jump Model DCC GARCH        1     3.315904        146            7     0.030458        440           21
+          jump        Jump Model DCC GARCH        3     3.316698        146            7     0.022806        440           21
+regression_hmm Regime regression DCC GARCH        1     3.487311        146            7    -0.356346        440           21
+regression_hmm Regime regression DCC GARCH        3     3.492042        146            7    -0.359000        440           21
+regression_dcc Regime regression DCC GARCH        1     3.487311        146            7    -0.356346        440           21
+regression_dcc Regime regression DCC GARCH        3     3.492042        146            7    -0.359000        440           21
+Elapsed: 5.9s. Results: C:\Users\kayli\OneDrive\Desktop\Capstone 1.2\CVaR Regime Models\regime_switching_all_dcc_results_rf4
