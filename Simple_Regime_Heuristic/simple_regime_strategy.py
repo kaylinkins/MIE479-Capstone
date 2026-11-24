@@ -220,12 +220,18 @@ def read_validation_signals(path: Path, origins: pd.DatetimeIndex, label: str) -
     if not path.exists():
         raise FileNotFoundError(f"Cannot find {path}")
     probs = pd.read_csv(path, parse_dates=["rebalance_date", "information_date"])
+    return validate_signal_table(probs, origins, label)
+
+
+def validate_signal_table(probs: pd.DataFrame, origins: pd.DatetimeIndex, label: str) -> pd.DataFrame:
     probs = probs[["rebalance_date", "information_date", "p_bear_today"]]
     probs = probs.sort_values("rebalance_date").reset_index(drop=True)
     if not pd.DatetimeIndex(probs["rebalance_date"]).equals(origins):
-        raise ValueError(f"Validation origins for {label} do not match the validation month starts")
-    if (probs["information_date"] >= probs["rebalance_date"]).any():
+        raise ValueError(f"Signal origins for {label} do not match the requested month starts")
+    if not (probs["information_date"] < probs["rebalance_date"]).all():
         raise ValueError(f"A {label} validation signal uses information on or after its rebalance date")
+    if not probs["p_bear_today"].between(0, 1).all():
+        raise ValueError(f"Bear signals for {label} must be between 0 and 1")
     return probs
 
 
@@ -395,6 +401,31 @@ def select_tau(grid: pd.DataFrame) -> float:
     ranked = grid.assign(_sharpe=grid["Sharpe"].round(6), _dist=(grid["tau"] - 0.5).abs())
     ranked = ranked.sort_values(["_sharpe", "_dist", "tau"], ascending=[False, True, True])
     return float(ranked.iloc[0]["tau"])
+
+
+def comparison_rotation_paths(train: pd.DataFrame, validation: pd.DataFrame, signals: pd.DataFrame):
+    """Evaluate Step 2 using cached HMM training signals and the paired validation forecasts."""
+    training_origins = month_start_dates(train.index)[BURN_IN_MONTHS + 1:]
+    training_cache = SOURCES["hmm"]["cache"]
+    if not training_cache.is_file():
+        training_cache = OUTPUT / "training_hmm_signals.csv"
+    training_signals = read_validation_signals(training_cache, training_origins, "HMM training")
+    training_window = train.loc[training_origins[0]:]
+    hmm_tau = select_tau(threshold_grid(2, training_window, training_origins, training_signals, "HMM"))
+
+    origins = month_start_dates(validation.index)
+    paths = {}
+    for forecast, tau in (("HMM", hmm_tau), ("Jump Model", 0.5)):
+        rows = signals.loc[signals.source.eq(forecast) & signals.rebalance_date.isin(origins)]
+        probs = validate_signal_table(rows, origins, forecast)
+        if forecast == "Jump Model" and not signal_is_binary(probs):
+            raise ValueError("The tuned Jump Model comparison requires binary as-of regime labels")
+        bear = probs.set_index("rebalance_date").p_bear_today
+        _, targets, _ = strategy_targets(2, origins, bear, tau, forecast)[0]
+        daily, _ = simulate(validation, origins, targets)
+        weights = pd.DataFrame.from_dict(targets, orient="index", columns=ASSETS)
+        paths[forecast] = daily, weights, bear, tau
+    return paths
 
 
 def signal_is_binary(*prob_tables: pd.DataFrame) -> bool:
