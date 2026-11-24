@@ -1,0 +1,137 @@
+01/28 2022-02-01 | stage regimes=['bear', 'bull', 'bull'] | 20 portfolios | 2.6s
+  Selected conditional means (Equity, Bond, BTC): [[-0.015886  0.004139  0.026216]
+ [ 0.013539  0.002405  0.090771]
+ [ 0.01468   0.00186   0.083707]]
+02/28 2022-03-01 | stage regimes=['bear', 'bull', 'bull'] | 20 portfolios | 2.2s
+  Selected conditional means (Equity, Bond, BTC): [[-0.020371  0.004183  0.03554 ]
+ [ 0.011884  0.001909  0.080168]
+ [ 0.014876  0.001867  0.088361]]
+03/28 2022-04-01 | stage regimes=['bear', 'bull', 'bull'] | 20 portfolios | 2.4s
+  Selected conditional means (Equity, Bond, BTC): [[-0.01375   0.00184   0.039356]
+ [ 0.012831  0.001683  0.084094]
+ [ 0.015037  0.001663  0.087563]]
+04/28 2022-05-02 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.6s
+  Selected conditional means (Equity, Bond, BTC): [[-0.015986 -0.000958  0.053839]
+ [-0.01513  -0.000888  0.054673]
+ [ 0.012886  0.001365  0.078501]]
+05/28 2022-06-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.7s
+  Selected conditional means (Equity, Bond, BTC): [[-0.014761 -0.000657  0.042635]
+ [-0.013416 -0.000576  0.041434]
+ [ 0.014268  0.0016    0.088017]]
+06/28 2022-07-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.8s
+  Selected conditional means (Equity, Bond, BTC): [[-0.016838 -0.001502  0.016914]
+ [-0.018447 -0.001639  0.021201]
+ [ 0.012768  0.001398  0.076667]]
+07/28 2022-08-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.013785 -0.000479  0.030546]
+ [-0.01202  -0.000392  0.028957]
+ [ 0.013524  0.001599  0.078316]]
+08/28 2022-09-01 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 3.0s
+  Selected conditional means (Equity, Bond, BTC): [[-0.013511 -0.001891  0.018412]
+ [-0.012988 -0.001826  0.019549]
+ [-0.012453 -0.00176   0.020712]]
+09/28 2022-10-03 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.016784 -0.00374   0.016435]
+ [-0.016255 -0.003651  0.017512]
+ [-0.015713 -0.003561  0.018614]]
+10/28 2022-11-01 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.01241  -0.004322  0.017442]
+ [-0.012004 -0.004236  0.018381]
+ [-0.011092 -0.003961  0.01829 ]]
+11/28 2022-12-01 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 3.1s
+  Selected conditional means (Equity, Bond, BTC): [[-0.009594 -0.00279   0.0097  ]
+ [-0.008849 -0.002604  0.010061]
+ [-0.008168 -0.002431  0.010238]]
+12/28 2023-01-03 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 3.1s
+  Selected conditional means (Equity, Bond, BTC): [[-0.010842 -0.002913  0.00743 ]
+ [-0.010052 -0.002722  0.007742]
+ [-0.011657 -0.003204  0.010754]]
+13/28 2023-02-01 | stage regimes=['bear', 'bull', 'bull'] | 20 portfolios | 2.8s
+  Selected conditional means (Equity, Bond, BTC): [[-0.007707 -0.001512  0.019225]
+ [ 0.014902  0.001707  0.085161]
+ [ 0.013225  0.001546  0.072204]]
+14/28 2023-03-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 3.0s
+  Selected conditional means (Equity, Bond, BTC): [[-0.01008  -0.002706  0.022891]
+ [-0.008127 -0.0022    0.01938 ]
+ [ 0.014554  0.001533  0.082185]]
+15/28 2023-04-03 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 3.1s
+  Selected conditional means (Equity, Bond, BTC): [[-0.006955 -0.001513  0.024858]
+ [-0.00775  -0.001706  0.029549]
+ [-0.007142 -0.001589  0.028796]]
+16/28 2023-05-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.007563 -0.001385  0.030653]
+ [-0.006921 -0.001281  0.029932]
+ [ 0.01375   0.001594  0.075663]]
+17/28 2023-06-01 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.0s
+  Selected conditional means (Equity, Bond, BTC): [[0.015679 0.001767 0.082042]
+ [0.014931 0.001684 0.077997]
+ [0.017011 0.00191  0.089764]]
+18/28 2023-07-03 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.3s
+  Selected conditional means (Equity, Bond, BTC): [[0.015791 0.001584 0.07866 ]
+ [0.017933 0.001791 0.090395]
+ [0.015638 0.001565 0.078299]]
+19/28 2023-08-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.006098 -0.001229  0.029098]
+ [-0.004955 -0.001026  0.026125]
+ [ 0.015633  0.001474  0.081744]]
+20/28 2023-09-01 | stage regimes=['bear', 'bear', 'bear'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.003798 -0.0017    0.020538]
+ [-0.003862 -0.001813  0.023571]
+ [-0.00347  -0.001692  0.023141]]
+21/28 2023-10-02 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.8s
+  Selected conditional means (Equity, Bond, BTC): [[-0.005416 -0.002345  0.023179]
+ [-0.004846 -0.002178  0.023036]
+ [ 0.013645  0.00131   0.074119]]
+22/28 2023-11-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[-0.005457 -0.002691  0.029077]
+ [-0.004941 -0.00251   0.028318]
+ [ 0.014128  0.001325  0.078693]]
+23/28 2023-12-01 | stage regimes=['bear', 'bear', 'bull'] | 20 portfolios | 3.0s
+  Selected conditional means (Equity, Bond, BTC): [[-0.002716 -0.001309  0.02987 ]
+ [-0.002528 -0.001321  0.032266]
+ [ 0.014138  0.001501  0.075847]]
+24/28 2024-01-02 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.2s
+  Selected conditional means (Equity, Bond, BTC): [[0.016173 0.001898 0.083209]
+ [0.015261 0.00179  0.078718]
+ [0.015148 0.001775 0.078405]]
+25/28 2024-02-01 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.2s
+  Selected conditional means (Equity, Bond, BTC): [[0.015722 0.001737 0.078616]
+ [0.015533 0.001715 0.078122]
+ [0.016876 0.001861 0.085676]]
+26/28 2024-03-01 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.2s
+  Selected conditional means (Equity, Bond, BTC): [[0.0178   0.00133  0.081981]
+ [0.018927 0.001429 0.089159]
+ [0.018473 0.001406 0.088225]]
+27/28 2024-04-01 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 3.2s
+  Selected conditional means (Equity, Bond, BTC): [[0.018112 0.00189  0.090391]
+ [0.017778 0.001849 0.089578]
+ [0.01521  0.001581 0.076602]]
+28/28 2024-05-01 | stage regimes=['bull', 'bull', 'bull'] | 20 portfolios | 2.9s
+  Selected conditional means (Equity, Bond, BTC): [[0.016053 0.001476 0.084394]
+ [0.014267 0.001329 0.073482]
+ [0.016457 0.001528 0.085375]]
+
+| Policy | Forecasts | Scenarios | H | Net return | Ann. Sharpe | Max drawdown | BTC | Equities | Bonds |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Min CVaR | HMM | HMM | 1 | -6.52% | -0.351 | -15.14% | 0.11% | 3.13% | 96.76% |
+| Min CVaR | HMM | HMM | 3 | -6.46% | -0.348 | -15.12% | 0.11% | 3.06% | 96.83% |
+| Matched return | HMM | HMM | 1 | 28.31% | 0.831 | -25.16% | 19.96% | 19.25% | 60.79% |
+| Matched return | HMM | HMM | 3 | 28.31% | 0.831 | -25.16% | 19.96% | 19.25% | 60.79% |
+| Min CVaR | Jump Model | Jump Model | 1 | -4.80% | -0.247 | -15.46% | 0.57% | 7.76% | 91.67% |
+| Min CVaR | Jump Model | Jump Model | 3 | -4.86% | -0.251 | -15.47% | 0.57% | 7.49% | 91.94% |
+| Matched return | Jump Model | Jump Model | 1 | 29.66% | 0.760 | -27.53% | 20.00% | 49.26% | 30.74% |
+| Matched return | Jump Model | Jump Model | 3 | 29.69% | 0.760 | -27.53% | 19.99% | 49.30% | 30.71% |
+| Min CVaR | Regime regression | HMM | 1 | -6.52% | -0.351 | -15.14% | 0.11% | 3.13% | 96.76% |
+| Min CVaR | Regime regression | HMM | 3 | -6.46% | -0.348 | -15.12% | 0.11% | 3.06% | 96.83% |
+| Matched return | Regime regression | HMM | 1 | 28.34% | 0.839 | -25.16% | 19.62% | 17.81% | 62.57% |
+| Matched return | Regime regression | HMM | 3 | 28.34% | 0.839 | -25.16% | 19.62% | 17.81% | 62.57% |
+| Min CVaR | Regime regression | DCC GARCH | 1 | -3.29% | -0.158 | -15.17% | 0.27% | 9.41% | 90.32% |
+| Min CVaR | Regime regression | DCC GARCH | 3 | -3.54% | -0.172 | -15.19% | 0.25% | 8.78% | 90.96% |
+| Matched return | Regime regression | DCC GARCH | 1 | 28.14% | 0.854 | -25.62% | 18.55% | 18.98% | 62.47% |
+| Matched return | Regime regression | DCC GARCH | 3 | 28.18% | 0.855 | -25.62% | 18.54% | 19.00% | 62.46% |
+| Min CVaR | Static regression | DCC GARCH | 1 | -3.29% | -0.158 | -15.17% | 0.27% | 9.41% | 90.32% |
+| Min CVaR | Static regression | DCC GARCH | 3 | -3.54% | -0.172 | -15.19% | 0.25% | 8.78% | 90.96% |
+| Matched return | Static regression | DCC GARCH | 1 | 33.40% | 0.886 | -24.23% | 19.94% | 42.40% | 37.66% |
+| Matched return | Static regression | DCC GARCH | 3 | 33.39% | 0.885 | -24.23% | 19.94% | 42.43% | 37.63% |
+
+Elapsed: 81.7s. Output: C:\Users\kayli\OneDrive\Desktop\Capstone 1.2\CVaR Regime Models\forecast_comparison_results_rf4
