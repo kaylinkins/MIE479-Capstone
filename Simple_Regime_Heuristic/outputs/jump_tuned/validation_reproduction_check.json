@@ -1,0 +1,6 @@
+{
+  "setting": "jump_penalty=150",
+  "origins": 28,
+  "max_abs_difference": 0.0,
+  "mismatched_origins": 0
+}

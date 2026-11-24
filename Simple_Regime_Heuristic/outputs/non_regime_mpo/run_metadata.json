@@ -1,0 +1,24 @@
+{
+  "returns_file": "/Users/elizzy/Downloads/MIE479-Capstone/Return_Forecasting/outputs/walk_forward_validation_expected_returns_h1_h3.csv",
+  "covariance_file": "/Users/elizzy/Downloads/MIE479-Capstone/Covariance_Estimation/outputs/covariances_ewma_lambda_0_93_walk_forward_validation.csv",
+  "risk_free_annual": 0.04,
+  "risk_free_inside_max_sharpe_targets": true,
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "cost_rate": 0.001,
+  "btc_cap": 0.2,
+  "mv_risk_aversion": 1.25,
+  "cvar_risk_aversion": 0.5,
+  "cvar_scenarios": "4000 Gaussian, whitened to match forecast mean/covariance, fixed seed 20240601+origin index",
+  "return_methods_first_origin": {
+    "method_Equity": "expanding_mean",
+    "method_Bond": "rolling_mean_10y",
+    "method_BTC": "expanding_mean"
+  },
+  "transaction_cost_definition": "sum of self-financing fee fractions incl. initial purchase / (daily obs/252)",
+  "monthly_var": "interpolated 95% loss VaR of compounded calendar-month net returns",
+  "test_set_used": false
+}

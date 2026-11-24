@@ -1,0 +1,74 @@
+{
+  "created": "2026-11-24T15:42:31",
+  "data_dir": "/Users/elizzy/Downloads/MIE479-Capstone/HMM_regime_forecasts",
+  "cost_rate": 0.001,
+  "burn_in_months": 36,
+  "threshold_grid": [
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7
+  ],
+  "btc_weight_favorable": 0.2,
+  "risk_free_rate_annual": 0.04,
+  "training_origins": 48,
+  "validation_origins": 28,
+  "training_window": [
+    "2018-02-01",
+    "2022-01-31"
+  ],
+  "validation_window": [
+    "2022-02-01",
+    "2024-05-31"
+  ],
+  "selection_criterion": "training net Sharpe (daily net returns, 4% annual risk-free rate converted to 0.04/252 per day, sqrt(252) annualization); ties go to the tau closest to 0.5",
+  "tuned_jump_settings": {
+    "penalty": 150.0,
+    "source": "inferred: the only candidate penalty reproducing the tuned validation CSV"
+  },
+  "sources": {
+    "hmm": {
+      "label": "HMM",
+      "signal_is_binary": false,
+      "selected_tau": {
+        "step1": 0.5,
+        "step2": 0.5
+      },
+      "validation_reproduction_check": {
+        "setting": "",
+        "origins": 28,
+        "max_abs_difference": 6.731598611864342e-11,
+        "mismatched_origins": 0
+      }
+    },
+    "jump": {
+      "label": "Jump",
+      "signal_is_binary": true,
+      "selected_tau": {
+        "step1": 0.5,
+        "step2": 0.5
+      },
+      "validation_reproduction_check": {
+        "setting": "jump_penalty=default",
+        "origins": 28,
+        "max_abs_difference": 0.0,
+        "mismatched_origins": 0
+      }
+    },
+    "jump_tuned": {
+      "label": "Jump tuned",
+      "signal_is_binary": true,
+      "selected_tau": {
+        "step1": 0.5,
+        "step2": 0.5
+      },
+      "validation_reproduction_check": {
+        "setting": "jump_penalty=150",
+        "origins": 28,
+        "max_abs_difference": 0.0,
+        "mismatched_origins": 0
+      }
+    }
+  }
+}
