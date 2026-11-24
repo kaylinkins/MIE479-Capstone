@@ -31,8 +31,10 @@ Same as hers:
   * Bull stages: min risk + cost with the max-Sharpe return floor; bear
     stages: min risk + cost with no floor; the full plan is solved jointly and
     only stage one is executed.
-  * Return floors are read from the paired CVaR decision artifacts. They use
-    the stage mean times max-Sharpe weights minus 1e-6 per holding day.
+  * Return floors use the stage mean times max-Sharpe weights minus 1e-6 per
+    holding day. The paired CVaR floors (0% risk-free) are read from its decision
+    artifacts but used only if regime_aware_mvo.RISK_FREE_ANNUAL is 0; with the
+    default 4% the MVO computes the floor itself (see regime_aware_mvo.py).
   * H = 1 and 3 as in her run, plus H = 2 (HORIZONS); 10 bps cost; long-only, fully invested; BTC cap 20%; start
     in cash; exact self-financing fee and daily drift; no terminal liquidation.
   * Metrics: cumulative net return; Sharpe annualized from net daily returns
