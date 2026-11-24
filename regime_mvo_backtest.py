@@ -31,10 +31,9 @@ Same as hers:
   * Bull stages: min risk + cost with the max-Sharpe return floor; bear
     stages: min risk + cost with no floor; the full plan is solved jointly and
     only stage one is executed.
-  * Return floors use the stage mean times max-Sharpe weights minus 1e-6 per
-    holding day. The paired CVaR floors (0% risk-free) are read from its decision
-    artifacts but used only if regime_aware_mvo.RISK_FREE_ANNUAL is 0; with the
-    default 4% the MVO computes the floor itself (see regime_aware_mvo.py).
+  * Return floors are read from the paired CVaR decision artifacts. They use
+    max-Sharpe weights at a 4% annual risk-free rate compounded over each
+    stage, then take the gross expected return minus 1e-6 per holding day.
   * H = 1 and 3 as in her run, plus H = 2 (HORIZONS); 10 bps cost; long-only, fully invested; BTC cap 20%; start
     in cash; exact self-financing fee and daily drift; no terminal liquidation.
   * Metrics: cumulative net return; Sharpe annualized from net daily returns
@@ -58,10 +57,13 @@ Different by design:
 DCC-GARCH requires the completed CVaR forecast, fixed-policy all-DCC and
 switching all-DCC runs. Override their directories using the CLI if needed.
 
-Outputs (Regime_MVO_MPO/outputs/)
+Outputs (Regime_MVO_MPO/outputs_rf4/)
     regime_mvo_results.csv           one row per model x source x H x BTC cap
     regime_mvo_weights.csv           executed weights, stage regimes and rules
     regime_mvo_daily_returns.csv     net daily returns of every strategy
+    figure_1_cumulative_wealth.png, figure_2_portfolio_allocations.png,
+    figure_3_drawdowns.png           aware CVaR vs MVO with HMM and Jump Model
+                                     forecasts, DCC-GARCH, H = 3 and 20% BTC cap
 
 Limits: 28 validation months, already inspected repeatedly; treat results as
 validation, not a fresh holdout.
@@ -129,13 +131,12 @@ def first_existing(*paths):
 
 
 ROOT = find_repo_root()
-OUTPUT_DIR = ROOT / "Regime_MVO_MPO" / "outputs"
+OUTPUT_DIR = ROOT / "Regime_MVO_MPO" / "outputs_rf4"
 ASSETS = ("Equity", "Bond", "BTC")
-CVAR_DIR = next((folder for folder in (ROOT / "CVaR Regime Models", ROOT)          # result folders may sit
-                 if (folder / "forecast_comparison_results").is_dir()), ROOT / "CVaR Regime Models")  # in the repo root
-FORECAST_RESULTS = CVAR_DIR / "forecast_comparison_results"
-CVAR_AWARE_RESULTS = CVAR_DIR / "all_dcc_comparison_results"
-CVAR_SWITCHING_RESULTS = CVAR_DIR / "regime_switching_all_dcc_results"
+CVAR_DIR = ROOT / "CVaR Regime Models"
+FORECAST_RESULTS = CVAR_DIR / "forecast_comparison_results_rf4"
+CVAR_AWARE_RESULTS = CVAR_DIR / "all_dcc_comparison_results_rf4"
+CVAR_SWITCHING_RESULTS = CVAR_DIR / "regime_switching_all_dcc_results_rf4"
 
 HMM_DIR = ROOT / "HMM_regime_forecasts" / "hmm_outputs"
 JUMP_DIR = ROOT / "HMM_regime_forecasts" / "jump_tuned_outputs"   # training-tuned jump model (as in the CVaR run); original: jump_outputs
@@ -272,6 +273,8 @@ def load_paired_forecasts(forecast_results, aware_results, switching_results):
             raise ValueError("Paired CVaR runs must use the same forecast cache")
         if protocol["upper"] != [1.0, 1.0, 0.2] or protocol["horizons"] != [1, 3]:
             raise ValueError("Paired CVaR runs must use the 20% BTC cap and horizons 1 and 3")
+        if protocol.get("risk_free") != aware.MAX_SHARPE_ANNUAL_RF:
+            raise ValueError("Paired CVaR runs must use the same annual max-Sharpe risk-free rate as MVO")
     if BTC_CAPS != (0.20,):
         raise ValueError("Paired MVO and CVaR require the same 20% BTC cap")
 
@@ -499,9 +502,23 @@ def main(selected=("aware", "switching"), horizons=HORIZONS, *,
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     table = pd.DataFrame(results)
+    executed_weights = pd.DataFrame(weight_rows)
     table.to_csv(OUTPUT_DIR / "regime_mvo_results.csv", index=False)
-    pd.DataFrame(weight_rows).to_csv(OUTPUT_DIR / "regime_mvo_weights.csv", index=False)
+    executed_weights.to_csv(OUTPUT_DIR / "regime_mvo_weights.csv", index=False)
     pd.DataFrame(daily).to_csv(OUTPUT_DIR / "regime_mvo_daily_returns.csv")
+
+    if "aware" in selected and 3 in horizons and RISK_MODEL == "DCC GARCH" and BTC_CAPS == (0.20,):
+        from regime_comparison_figures import save_comparison_figures
+
+        cvar_results = Path(aware_results)
+        manifest = completed_manifest(cvar_results)
+        cvar_daily = pd.read_csv(checked_artifact(cvar_results, manifest, "portfolio_daily.csv"),
+                                 parse_dates=["date"])
+        cvar_monthly = pd.read_csv(checked_artifact(cvar_results, manifest, "portfolio_monthly.csv"),
+                                   parse_dates=["origin"])
+        save_comparison_figures(cvar_daily, cvar_monthly, daily, executed_weights,
+                                initial_date=train.index[-1], output=OUTPUT_DIR)
+        print(f"Saved three CVaR and MVO comparison figures to {OUTPUT_DIR}")
 
     pd.set_option("display.width", 240)
     pd.set_option("display.max_columns", None)
