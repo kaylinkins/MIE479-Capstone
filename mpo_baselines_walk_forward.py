@@ -24,7 +24,8 @@
 # Keep INCLUDE_TEST = False until settings are chosen on validation.
 # ============================================================
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from functools import cached_property
 from pathlib import Path
 import hashlib
 import json
@@ -35,7 +36,7 @@ import numpy as np
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-_CVAR_DIRECTORY = str(PROJECT_ROOT / "CVaR_MPO")
+_CVAR_DIRECTORY = str(PROJECT_ROOT / "CVaR MPO and Scenarios")
 if _CVAR_DIRECTORY not in sys.path:
     sys.path.insert(0, _CVAR_DIRECTORY)
 
@@ -67,7 +68,7 @@ output = Path(__file__).resolve().parent
 # ------------------------------------------------------------
 
 def find_data_dir():
-    for folder in [PROJECT_ROOT / "Data" / "datasets", output, *output.parents]:
+    for folder in [PROJECT_ROOT / "Data", PROJECT_ROOT / "Data" / "datasets", output, *output.parents]:
         if (folder / "portfolio_train.csv").exists():
             return folder
     raise FileNotFoundError("portfolio_train.csv not found; run Splitting data.py first.")
@@ -92,6 +93,13 @@ class Bundle:
     origin: pd.Timestamp
     metadata: dict = field(default_factory=dict)
 
+    @cached_property
+    def matched_return_reference(self):
+        """Use the same maximum-Sharpe reference for CVaR and variance."""
+        return mc.matched_return_targets(
+            self.returns["historical"], [len(period) for period in self.periods],
+            upper=(1., 1., BTC_CAP), risk_free=0., native_layout="F")
+
 
 def make_bundle(history, days, horizon):
     """Month-length overlapping historical scenarios, repeated for each planned month."""
@@ -104,20 +112,22 @@ def make_bundle(history, days, horizon):
 
 def plan_for(model, bundle, w_prev, horizon):
     if model == CVAR_MODEL:
-        # Preserve the single-period reference: native scenario means and the
-        # original maximum-Sharpe target minus 1e-6 per holding day. Keep the
-        # existing CVaR-plus-cost planner and exact monthly execution unchanged.
         plan = mc.optimize_matched_cvar(
             bundle.returns['historical'][:, :horizon], w_prev,
             [len(period) for period in bundle.periods[:horizon]],
-            native_layout='F',
+            reference=bundle.matched_return_reference,
             upper=(1., 1., BTC_CAP), cost_rate=COST_RATE,
             risk_aversion=CVAR_RISK_AVERSION, alpha=.95, risk_free=0.)
         plan.metadata['forecast_model'] = 'historical'
         return plan
+    settings = {}
+    if model == mb.MATCHED_SHARPE_BASELINE:
+        reference = bundle.matched_return_reference
+        bundle = replace(bundle, expected_returns=reference.expected_returns)
+        settings["min_return"] = reference.targets[:horizon]
     return mb.optimize_forecast(bundle, "historical", w_prev, baseline=model, horizon=horizon,
                                 btc_cap=BTC_CAP, cost_rate=COST_RATE,
-                                risk_aversion=MV_RISK_AVERSION)
+                                risk_aversion=MV_RISK_AVERSION, **settings)
 
 
 # ------------------------------------------------------------
@@ -141,6 +151,8 @@ def run_walk_forward(returns, oos_start, *, horizons=None, models=None, progress
     oos_months = sorted(set(months[returns.index >= pd.Timestamp(oos_start)]))
     if not oos_months or not horizons or not models:
         raise ValueError("Supply at least one evaluation month, horizon and model")
+    forecast_horizon = max(horizons)
+    bundles = {}
     daily, stats, weight_rows = {}, {}, []
     if progress:
         print(f"Starting validation walk-forward: {len(oos_months)} months, "
@@ -156,12 +168,14 @@ def run_walk_forward(returns, oos_start, *, horizons=None, models=None, progress
             for month_index, m in enumerate(oos_months):
                 days = returns[months == m]
                 date = days.index[0]
-                history = returns[(returns.index < date) &
-                                  (returns.index >= date-pd.DateOffset(years=ROLLING_YEARS))]
-                if history.empty or history.index.max() >= date:
-                    raise ValueError("Require nonempty history strictly before the rebalance")
                 try:
-                    plan = plan_for(model, make_bundle(history, days, H), w_prev, H)
+                    if m not in bundles:
+                        history = returns[(returns.index < date) &
+                                          (returns.index >= date-pd.DateOffset(years=ROLLING_YEARS))]
+                        if history.empty or history.index.max() >= date:
+                            raise ValueError("Require nonempty history strictly before the rebalance")
+                        bundles[m] = make_bundle(history, days, forecast_horizon)
+                    plan = plan_for(model, bundles[m], w_prev, H)
                 except (RuntimeError, ValueError, AssertionError) as error:
                     raise RuntimeError(f"{model}, H={H}, {date.date()}: {error}") from error
                 executed = mb.execute_first_period(plan, days.values)
@@ -221,6 +235,8 @@ def main():
         "cvar_model": CVAR_MODEL, "cvar_function": "cvar_mpo.optimize_matched_cvar",
         "cvar_return_reward": 0., "cvar_risk_aversion": CVAR_RISK_AVERSION,
         "cvar_return_floors": "original maximum-Sharpe expected return from native scenario means minus 1e-6 per holding day; same caps",
+        "matched_return_models": [mb.MATCHED_SHARPE_BASELINE, CVAR_MODEL],
+        "matched_return_floors": "both models use the same native scenario means and original maximum-Sharpe floor minus 1e-6 per holding day",
         "alpha": .95, "btc_cap": BTC_CAP, "cost_rate": COST_RATE,
         "horizons": HORIZONS, "include_test": INCLUDE_TEST,
         "output_sha256": {name: hashlib.sha256((output/name).read_bytes()).hexdigest() for name in result_names}}
