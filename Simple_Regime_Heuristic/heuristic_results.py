@@ -1,23 +1,75 @@
-# Rotation table: HMM vs Jump tuned, 3 assets (Equity/Bond/BTC), 4% rf, validation only.
-# Reads saved CSVs only. Does not refit, does not modify any existing file.
+# Rotation table in the teammates' format: Forecasts | Scenarios | Regime (Overall/Bull/Bear).
+# HMM and Jump tuned, 3 assets (80% Equity + 20% BTC / Bond), 4% rf, validation only.
+# Reads saved CSVs only. Does not refit and does not modify any existing file.
 # Save in Simple_Regime_Heuristic/ and run.
 from pathlib import Path
+import json
 import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / "outputs" 
+ROOT = HERE.parent
+OUTPUT = HERE / "outputs"
+OUT = OUTPUT
 OUT.mkdir(parents=True, exist_ok=True)
 
-RF_ANNUAL, TD = 0.04, 252
-EXTRA_BASELINES = False      # True adds always-80/20 buy-and-hold and 100% Bond
-SOURCES = {"HMM rotation (80% Equity / 20% BTC, else Bond)": "hmm",
-           "Jump tuned rotation (80% Equity / 20% BTC, else Bond)": "jump_tuned"}
+RF_ANNUAL, TD, COST_RATE, BTC_W = 0.04, 252, 0.001, 0.20
+ASSETS = ["Equity", "Bond", "BTC"]
+SOURCES = {"HMM": "hmm", "Jump tuned": "jump_tuned"}     # label -> folder / metadata key
+SCENARIOS_LABEL = "None (rule-based)"
+FAVORABLE = np.array([1 - BTC_W, 0.0, BTC_W])
+BOND = np.array([0.0, 1.0, 0.0])
 
 
-def metrics(r, cost_pct_total):
+def find_validation_csv():
+    for folder in [ROOT / "HMM_regime_forecasts", ROOT / "Data" / "datasets", ROOT / "Data", HERE, *HERE.parents]:
+        if (folder / "portfolio_validation.csv").exists():
+            return folder / "portfolio_validation.csv"
+    found = sorted(ROOT.rglob("portfolio_validation.csv"))
+    if found:
+        return found[0]
+    raise FileNotFoundError("portfolio_validation.csv not found.")
+
+
+def frozen_tau(key):
+    for p in (OUTPUT / "misc" / "run_metadata.json", OUTPUT / "run_metadata.json"):
+        if p.exists():
+            try:
+                meta = json.loads(p.read_text())
+                return float(meta["sources"][key]["selected_tau"]["step2"]), str(p)
+            except (KeyError, ValueError):
+                pass
+    print(f"WARNING: frozen tau for {key} not found in run_metadata.json; using 0.5.")
+    return 0.5, "default 0.5 (metadata not found)"
+
+
+def reconstruct(window, targets):
+    """Same accounting as the rotation script: all-cash start, cost = 0.001 * (buys + sells)."""
+    R = window[ASSETS].to_numpy(float)
+    holdings, value = np.zeros(3), 1.0
+    daily, cost_frac = [], {}
+    for t, date in enumerate(window.index):
+        prev = value
+        if date in targets:
+            desired = targets[date] * value
+            cost = COST_RATE * np.abs(desired - holdings).sum()
+            value -= cost
+            holdings = targets[date] * value
+            cost_frac[date] = cost / prev
+        holdings = holdings * (1 + R[t])
+        value = float(holdings.sum())
+        daily.append(value / prev - 1)
+    return pd.Series(daily, index=window.index), pd.Series(cost_frac)
+
+
+def metrics(r, cost_sum):
+    n = len(r)
+    if n < 2:
+        return {k: np.nan for k in ["Net CAGR (%)", "Annual volatility (%)", "Annual Sharpe",
+                                    "Daily 95% VaR (%)", "Monthly 95% VaR (%)",
+                                    "Max drawdown (%)", "Annualized transaction costs (%)"]}
     a = r.to_numpy(float)
-    n, years = len(a), len(a) / TD
+    years = n / TD
     wealth = np.cumprod(1 + a)
     peak = np.maximum.accumulate(np.r_[1., wealth])[1:]
     monthly = (1 + r).groupby(r.index.to_period("M")).prod() - 1
@@ -28,62 +80,60 @@ def metrics(r, cost_pct_total):
         "Annual Sharpe": (a.mean() - RF_ANNUAL / TD) / sd * np.sqrt(TD),
         "Daily 95% VaR (%)": np.quantile(-a, .95) * 100,
         "Monthly 95% VaR (%)": np.quantile(-monthly.to_numpy(), .95) * 100,
-        "Max drawdown (%)": (1 - wealth / peak).max() * 100,
-        "Annual transaction costs (%)": cost_pct_total / years,
-        "Total return (%)": (wealth[-1] - 1) * 100,
-        "Daily observations": n,
+        "Max drawdown (%)": -(1 - wealth / peak).max() * 100,      # negative, as in the teammates' table
+        "Annualized transaction costs (%)": cost_sum / years * 100,
     }
 
 
-def find_col(df, text):
-    hits = [c for c in df.columns if text.lower() in str(c).lower()]
-    if not hits:
-        raise KeyError(f"No column containing '{text}' in {list(df.columns)}")
-    return hits[0]
-
-
-def load(folder):
-    d = HERE / "outputs" / folder
-    daily = pd.read_csv(d / "step2_validation_daily_net_returns.csv", index_col=0, parse_dates=True)
-    res = pd.read_csv(d / "step2_validation_results.csv")
-    return daily.sort_index(), res
-
+validation = pd.read_csv(find_validation_csv(), index_col=0, parse_dates=True).sort_index()
+month_starts = validation.index[~validation.index.to_period("M").duplicated()]
 
 rows, checks = [], []
-for label, folder in SOURCES.items():
-    daily, res = load(folder)
-    names = list(res["Strategy"]) if "Strategy" in res.columns else list(res.iloc[:, 0])
-    cost_col = find_col(res, "Total costs")
-    ret_col = find_col(res, "Total return")
-    sharpe_col = find_col(res, "Sharpe")
+for label, key in SOURCES.items():
+    folder = OUTPUT / key
+    sig = pd.read_csv(folder / "validation_signals.csv", parse_dates=["rebalance_date", "information_date"])
+    sig = sig.sort_values("rebalance_date").set_index("rebalance_date")
+    if not pd.DatetimeIndex(sig.index).equals(month_starts):
+        raise ValueError(f"{label}: signal dates do not match validation month starts")
+    tau, tau_src = frozen_tau(key)
+    bear = sig["p_bear_today"] >= tau                      # True = higher-vol state = defensive (Bond)
+    targets = {d: (BOND if bear[d] else FAVORABLE) for d in sig.index}
 
-    series = [(label, daily.iloc[:, 0])]                       # rotation = first data column
-    series += [(c, daily[c]) for c in daily.columns[1:]
-               if "Equal weight" in c or (EXTRA_BASELINES and ("Always" in c or "Bond" in c))]
-    for lab, r in series:
-        if folder == "jump_tuned" and not lab.startswith("Jump tuned"):
-            continue                                            # baselines are the same in both files; show once
-        pos = list(daily.columns).index(r.name)
-        res_row = res.iloc[pos]                                 # same order as daily columns
-        m = metrics(r, float(res_row[cost_col]))
-        m["Strategy"] = lab
-        rows.append(m)
-        checks.append((lab, m["Total return (%)"], float(res_row[ret_col]),
-                       round(m["Annual Sharpe"], 2), float(res_row[sharpe_col])))
+    rec_daily, cost_frac = reconstruct(validation, targets)
+    saved = pd.read_csv(folder / "step2_validation_daily_net_returns.csv",
+                        index_col=0, parse_dates=True).sort_index().iloc[:, 0]
+    if len(saved) != len(rec_daily) or not saved.index.equals(rec_daily.index):
+        raise ValueError(f"{label}: saved daily returns do not line up with the validation window")
+    checks.append((label, tau, tau_src, float((rec_daily - saved).abs().max())))
 
-table = pd.DataFrame(rows).set_index("Strategy")
+    r = saved                                              # saved net returns are the authoritative series
+    state_by_month = pd.Series(bear.to_numpy(), index=sig.index.to_period("M"))
+    day_bear = r.index.to_period("M").map(state_by_month).to_numpy(dtype=bool)
+    cost_bear = pd.Series(bear.to_numpy(), index=sig.index)
+    for regime, mask, cmask in (("Overall", np.ones(len(r), bool), np.ones(len(sig), bool)),
+                                ("Bull", ~day_bear, ~bear.to_numpy()),
+                                ("Bear", day_bear, bear.to_numpy())):
+        cost_sum = float(cost_frac[sig.index[cmask]].sum())
+        m = metrics(r[mask], cost_sum)
+        rows.append({"Forecasts": label, "Scenarios": SCENARIOS_LABEL, "Regime": regime, **m,
+                     "Months": int(cmask.sum()), "Days": int(mask.sum())})
+
+table = pd.DataFrame(rows)
+table.to_csv(OUT / "rotation_overall_bull_bear.csv", index=False)
+
 cols = ["Net CAGR (%)", "Annual volatility (%)", "Annual Sharpe", "Daily 95% VaR (%)",
-        "Monthly 95% VaR (%)", "Max drawdown (%)", "Annual transaction costs (%)"]
-table.to_csv(OUT / "rotation_hmm_vs_jump_tuned_table.csv")
+        "Monthly 95% VaR (%)", "Max drawdown (%)", "Annualized transaction costs (%)", "Months", "Days"]
+print("| Forecasts | Scenarios | Regime | " + " | ".join(cols) + " |")
+print("|---|---|---|" + "---:|" * len(cols))
+for _, row in table.iterrows():
+    cells = []
+    for c in cols:
+        v = row[c]
+        cells.append(f"{int(v)}" if c in ("Months", "Days") else
+                     (f"{v:.3f}" if c == "Annual Sharpe" else f"{v:.2f}"))
+    print(f"| {row['Forecasts']} | {row['Scenarios']} | {row['Regime']} | " + " | ".join(cells) + " |")
 
-print("| Strategy | " + " | ".join(cols) + " |")
-print("|---|" + "---:|" * len(cols))
-for name, row in table.iterrows():
-    print(f"| {name} | " + " | ".join(f"{row[c]:.3f}" if c == "Annual Sharpe" else f"{row[c]:.2f}"
-                                     for c in cols) + " |")
-
-print("\nDaily observations:", sorted(table["Daily observations"].unique()))
-print("\nCHECK vs saved results file (computed vs saved total return %, computed vs saved Sharpe):")
-for lab, tr, tr_saved, sh, sh_saved in checks:
-    print(f"  {lab[:45]:45s} {tr:8.2f} vs {tr_saved:8.2f} | {sh:6.2f} vs {sh_saved:6.2f}")
+print("\nCHECK (re-simulated vs saved daily net returns; max abs difference should be ~1e-12):")
+for label, tau, src, diff in checks:
+    print(f"  {label:12s} tau={tau}  max diff={diff:.2e}  [{src}]")
 print(f"\nSaved to {OUT}")
