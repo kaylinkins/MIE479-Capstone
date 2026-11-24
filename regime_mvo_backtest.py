@@ -129,7 +129,8 @@ def first_existing(*paths):
 ROOT = find_repo_root()
 OUTPUT_DIR = ROOT / "Regime_MVO_MPO" / "outputs"
 ASSETS = ("Equity", "Bond", "BTC")
-CVAR_DIR = ROOT / "CVaR Regime Models"
+CVAR_DIR = next((folder for folder in (ROOT / "CVaR Regime Models", ROOT)          # result folders may sit
+                 if (folder / "forecast_comparison_results").is_dir()), ROOT / "CVaR Regime Models")  # in the repo root
 FORECAST_RESULTS = CVAR_DIR / "forecast_comparison_results"
 CVAR_AWARE_RESULTS = CVAR_DIR / "all_dcc_comparison_results"
 CVAR_SWITCHING_RESULTS = CVAR_DIR / "regime_switching_all_dcc_results"
