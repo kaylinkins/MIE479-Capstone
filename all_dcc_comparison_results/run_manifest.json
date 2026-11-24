@@ -1,0 +1,130 @@
+{
+  "protocol": {
+    "experiments": {
+      "hmm": {
+        "forecast": "HMM",
+        "original_scenarios": "HMM",
+        "scenarios": "DCC GARCH"
+      },
+      "jump": {
+        "forecast": "Jump Model",
+        "original_scenarios": "Jump Model",
+        "scenarios": "DCC GARCH"
+      },
+      "regression_hmm": {
+        "forecast": "Regime regression",
+        "original_scenarios": "HMM",
+        "scenarios": "DCC GARCH"
+      },
+      "regression_dcc": {
+        "forecast": "Regime regression",
+        "original_scenarios": "DCC GARCH",
+        "scenarios": "DCC GARCH"
+      },
+      "static_dcc": {
+        "forecast": "Static regression",
+        "original_scenarios": "DCC GARCH",
+        "scenarios": "DCC GARCH"
+      }
+    },
+    "policies": [
+      "min_cvar",
+      "matched_return"
+    ],
+    "horizons": [
+      1,
+      3
+    ],
+    "n_scenarios": 10000,
+    "seed": 42,
+    "alpha": 0.95,
+    "risk_aversion": 0.5,
+    "return_reward": 0.0,
+    "cost_rate": 0.001,
+    "upper": [
+      1.0,
+      1.0,
+      0.2
+    ],
+    "risk_free": 0.0,
+    "initial_holdings": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "evaluation_start": "2022-02-01",
+    "evaluation_end": "2024-05-31",
+    "evaluation_months": 28,
+    "source_forecast_results": "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\forecast_comparison_results",
+    "source_forecast_fingerprint": "3291010e66fa5b6fe6e040aa569913e942d58f1c893aa6daa408bb51f9d66453",
+    "scenario_source": "DCC GARCH for every configuration",
+    "scenario_mean_translation": false,
+    "regime_volatility_overlay": false,
+    "policy_switching": false,
+    "regime_regression_selection": "Same forecast month-end bull/bear conditional means as previous comparison",
+    "execution": "Monthly reoptimization; first allocation only; exact fees and daily drift",
+    "terminal_liquidation": false,
+    "duplicate_regression_slots_retained": true
+  },
+  "input_sha256": {
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\forecast_comparison_results\\run_manifest.json": "d3143752642fc7d78d7f02ea8edae1a907154d9771acebd9a932151d4c10e7e1",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\Data\\portfolio_train.csv": "63ccff93defb6c98476da583226b641e1e0c3ba0394856d5cec95f3cee5b8300",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\Data\\portfolio_validation.csv": "d0ab2b21b4e420b5a73aa9a4ad4db1519b96a25749d9024bd73d773b7fd6fbec"
+  },
+  "source_sha256": {
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\run_all_dcc_comparison.py": "93022909c4efbe741369d894016f326d2c4ad072f93df3965499ac973626824a",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\regime_cvar.py": "6c6f66b251551f8499e2591a3af75f5414d0b582ab8af3c17a3a0f7301a94045",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\run_regime_cvar.py": "826d2720bf46f43c2d7261f4c0d61c9e186c13fe418a6ae50bbb3d8ef7ad88dc",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\run_forecast_comparison.py": "93d7c152559241c114ed3318410bbc77592fb89bcd85d177596f9c0462af4f3a",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR Regime Models\\run_regime_switching.py": "c2a85e9a697795c0fa3e8dfd776be5bfd85f0c9c359f076c10f551959b3754b8",
+    "C:\\Users\\kayli\\OneDrive\\Desktop\\Capstone 1.2\\CVaR MPO and Scenarios\\cvar_mpo.py": "eeafb7ec71e48ae6ef1be7fca7d8110bf8800db4871ae3ff387c0ddd0523c088"
+  },
+  "environment": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scipy": "1.18.1"
+  },
+  "fingerprint": "ea134cfd2e6598c8a0583f070bc37716d22200ad503334644e4048ca462ec79b",
+  "completed": true,
+  "completed_utc": "2026-11-23T16:17:30.529587+00:00",
+  "output_sha256": {
+    "decisions/2022-02-01.json": "481fd0838aa676dd77856368723f6bad2507da1cf261522d7321b81e5c5b9d47",
+    "decisions/2022-03-01.json": "ee4e23750aafe49f9ba5b72ac86f6e82a19154dda55ef16caf8646b5120a031e",
+    "decisions/2022-04-01.json": "c402ce9bb918d9b319bf91a51bd54a25397ebe35e86de55da93673e8c3ce47d5",
+    "decisions/2022-05-02.json": "7bc3e8ab72f0d2d8dd103f556bb486503d4fa605d29bbd83c8da8f38ae7062a4",
+    "decisions/2022-06-01.json": "eafdfe71df7c4d8ccc1e90d8b4516f0ce6bf78037ec004a1e80e88b49f29fb29",
+    "decisions/2022-07-01.json": "0de67bfc9414590025fa1292f2e7b0711e4f7beaab7fe3039fd433ca0e8f7edc",
+    "decisions/2022-08-01.json": "58c489a5586838e9d0b8e7b28fca5cda06aeaec7c7705845a07f5cf83e4aeae5",
+    "decisions/2022-09-01.json": "960b4279471e60de618f80581ecaba835466cbbbdfcd464ba1323ee0d295efc6",
+    "decisions/2022-10-03.json": "9c77bfd2417a86530d080d45f1c506ad9ff9e6bfb9d702e399cdb9d846973608",
+    "decisions/2022-11-01.json": "22d5f15be0251d929d1d5bb4bb6b64e89f80349069d0218790b0a7eb2ce744c3",
+    "decisions/2022-12-01.json": "f73735ce80a747ca0f942052780c82b0c6eb5ecca5b45946ee21ba90ab117d87",
+    "decisions/2023-01-03.json": "20c3b6ff572d70e576808afca86ccdce1e2038963631c41ad7f3164d3a8710ff",
+    "decisions/2023-02-01.json": "df40bf037c752385c24f2aff5dc18b42e56b4386487d25434db4ceeb7c818808",
+    "decisions/2023-03-01.json": "7c3c6c6c31696e070d16bd63a95e9a7ea760d3e426d5181ef1d24ba49b1a652f",
+    "decisions/2023-04-03.json": "54bc6fd4d376d63cecea9090adf51de0afb06e00a9c0e96c138d8ed7ea2b6d18",
+    "decisions/2023-05-01.json": "b628c3bc3df1a0dfd6435fc4f7ee4d4af7ab7d22767666023a4ecefd446a7e1b",
+    "decisions/2023-06-01.json": "a45e2ade946df84e6f94b04a80e6da66b24c5378ca054d1d937f9b89b1300122",
+    "decisions/2023-07-03.json": "8b82dbf3fe883ebfc6ad92fa32c4f3508aee0e0fae20f3ef78b3cb851733d477",
+    "decisions/2023-08-01.json": "5916397f269d44030c89cbab0eaef759c8302c7bc9bc9def76bffe62d2b033dc",
+    "decisions/2023-09-01.json": "d87483a1a4b3c33e6ee5c6c622d296b18a824270c88a4db8bdbbe6d425da546a",
+    "decisions/2023-10-02.json": "a8b8dba86f0e42d1196d85db6054d70541978ceaf8a2f1f49d29de2e7de8f034",
+    "decisions/2023-11-01.json": "a93884af20e3194645838d164a7a150c04e2e10a89d8b4a9f8f42da74719138d",
+    "decisions/2023-12-01.json": "4b468a3c98e1699e8066977b43df8662d219e18a5142ca4a62eba55693a74c4e",
+    "decisions/2024-01-02.json": "d28bc16328cfbbc8acc5de2f22ed855f3310e79b3de71b86d6b21f40b1d08506",
+    "decisions/2024-02-01.json": "2eddecba4463aca888bc61aabe2713635e5330d9fdba9b5b60d5997941841855",
+    "decisions/2024-03-01.json": "bf1ffdafc1a40f26a826de4cf9aadfff03a1761b3e9b1c0353f41b0b1ae979d4",
+    "decisions/2024-04-01.json": "49b2398d8e021febfdd5f646fc2bd37ab9d0a69cacb933d67ab3b2a366047ae9",
+    "decisions/2024-05-01.json": "784d19a3da5a071bb52e006dcb74fffc77da488a1bf22379cfdcfcace08ef551",
+    "expected_returns.csv": "b2438a7ca31a473260208bc0f7d7f5cde05825c9f41b01bdd31485aacb6f8ce9",
+    "planned_allocations.csv": "263ef03e8376439ba4b0de2bc58e7208d552696239b186160bb7efa5610469b5",
+    "portfolio_daily.csv": "b46403ae8a2b21c6d3350078920face00bf84ea8c40fd4fc30dcd4a3dcbe1b60",
+    "portfolio_monthly.csv": "b5ad094f24f433c9606baa89380be51e56319626456006b623551691ad1cc79b",
+    "portfolio_summary.csv": "d72eef0c1fa890fe70b08fff9d7676499ec6a8727c8d4e8e8bf04f9ed76d5d64",
+    "protocol.json": "d955cf787452ae429ad7e1526cc3267d1b74d8db95f53b665ff47156ab24fc06",
+    "report.md": "89cd10efcadbeb62dd2455e074d2147ef7a108ed681516c84f22b798ff4cd092",
+    "run.log": "3e74c32b0b221d10d51dc5675765abb9bb7fc07d0ed9b04522279fb28ed83b05",
+    "scenario_change_comparison.csv": "ec9c3b5da66bda2ce36fb8575b40703dec1aba2584cc67d62e3c4e800e8fb2f5",
+    "summary_table.md": "8c84a26732dbc25e87e2a597e61c33be67eec420f945d32af8bdd63abd0a7e8c"
+  }
+}
