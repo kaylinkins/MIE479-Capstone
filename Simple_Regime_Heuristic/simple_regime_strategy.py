@@ -12,10 +12,11 @@ hold the defensive allocation.
 Threshold tau is chosen on TRAINING data only:
   * the HMM is refit at monthly origins inside the training period
     (expanding window, only data before each origin, 36-month burn-in);
-  * tau is chosen from a preset grid by training net Sharpe after costs;
+  * tau is chosen from a preset grid by training net Sharpe after costs,
+    using a 4% annual risk-free rate;
   * tau is then frozen and applied to the validation signals.
-Validation HMM probabilities are read from the teammate's
-HMM_regime_forecasts/hmm_outputs/regime_probabilities.csv.
+Validation HMM probabilities are read from
+2-State HMM/HMM Forecasts/regime_probabilities.csv.
 
 Training benchmarks (buy-and-hold, 50/50, equal weight) are reported over the
 same training origins. The rotation's tau was selected on that same period, so
@@ -37,13 +38,12 @@ import numpy as np
 import pandas as pd
 
 # ----------------------------- settings --------------------------------
-HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent
-HMM_DIR = ROOT / "HMM_regime_forecasts"
-HMM_SCRIPT = HMM_DIR / "hmm_regime_model.py"
-HMM_VALIDATION_PROBS = HMM_DIR / "hmm_outputs" / "regime_probabilities.csv"
-DATA_DIR = None            # set to a Path if portfolio_train/validation.csv live elsewhere
-OUTPUT = HERE / "outputs"
+ROOT = Path(__file__).resolve().parent
+HMM_DIR = ROOT / "2-State HMM"
+HMM_SCRIPT = HMM_DIR / "Archive" / "hmm_outputs" / "hmm_regime_forecasting_mvo_cvar.py"
+HMM_VALIDATION_PROBS = HMM_DIR / "HMM Forecasts" / "regime_probabilities.csv"
+DATA_DIR = ROOT / "Data"
+OUTPUT = ROOT / "outputs"
 
 ASSETS = ("Equity", "Bond", "BTC")
 COST_RATE = 0.001          # charged on traded notional (buys + sells)
@@ -51,6 +51,8 @@ BURN_IN_MONTHS = 36        # minimum history before the first training origin
 THRESHOLD_GRID = (0.3, 0.4, 0.5, 0.6, 0.7)
 BTC_WEIGHT_FAVORABLE = 0.20  # Step 2: fixed in advance (the BTC cap); not tuned
 TRADING_DAYS = 252
+ANNUAL_RISK_FREE_RATE = 0.04
+DAILY_RISK_FREE_RATE = np.expm1(np.log1p(ANNUAL_RISK_FREE_RATE) / TRADING_DAYS)
 FORCE_REFIT = False        # True = ignore the cached training HMM signals
 
 
@@ -63,18 +65,6 @@ def import_hmm_module():
     sys.modules["hmm_regime_model"] = module
     spec.loader.exec_module(module)  # main() is guarded by __name__, so it does not run
     return module
-
-
-def find_data_dir():
-    candidates = [HMM_DIR, ROOT, HERE, ROOT / "Data Work"]
-    for folder in candidates:
-        if (folder / "portfolio_train.csv").exists() and (folder / "portfolio_validation.csv").exists():
-            return folder
-    raise FileNotFoundError(
-        "Could not find portfolio_train.csv and portfolio_validation.csv in: "
-        + ", ".join(str(c) for c in candidates)
-        + ". Set DATA_DIR at the top of this script."
-    )
 
 
 def month_start_dates(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
@@ -117,8 +107,10 @@ def validation_signals(origins: pd.DatetimeIndex) -> pd.DataFrame:
     probs = probs.sort_values("rebalance_date").reset_index(drop=True)
     if not pd.DatetimeIndex(probs["rebalance_date"]).equals(origins):
         raise ValueError("Validation HMM origins do not match the validation month starts")
-    if (probs["information_date"] >= probs["rebalance_date"]).any():
-        raise ValueError("A validation signal uses information on or after its rebalance date")
+    if not (probs["information_date"] < probs["rebalance_date"]).all():
+        raise ValueError("Each validation signal must have an information date before its rebalance date")
+    if not probs["p_bear_today"].between(0, 1).all():
+        raise ValueError("Validation bear probabilities must be between 0 and 1")
     return probs
 
 
@@ -170,7 +162,7 @@ def performance(name: str, daily: pd.Series, rec: pd.DataFrame, extra: dict | No
         "Total return (%)": 100 * total,
         "Ann. return (%)": 100 * ((1 + total) ** (TRADING_DAYS / n) - 1),
         "Ann. volatility (%)": 100 * std * np.sqrt(TRADING_DAYS),
-        "Sharpe": daily.mean() / std * np.sqrt(TRADING_DAYS) if std > 0 else np.nan,
+        "Sharpe": (daily.mean() - DAILY_RISK_FREE_RATE) / std * np.sqrt(TRADING_DAYS) if std > 0 else np.nan,
         "95% VaR loss, daily (%)": -100 * q,
         "95% CVaR loss, daily (%)": -100 * float(daily[daily <= q].mean()),
         "Max drawdown (%)": -100 * float((wealth.to_numpy() / peak - 1.0).min()),
@@ -295,9 +287,8 @@ WEIGHT_COLUMNS = ["Strategy", "Avg weight Equity (%)", "Avg weight Bond (%)", "A
 def main():
     OUTPUT.mkdir(exist_ok=True)
     hmm = import_hmm_module()
-    data_dir = Path(DATA_DIR) if DATA_DIR else find_data_dir()
-    print(f"Reading portfolio_train.csv and portfolio_validation.csv from {data_dir}")
-    train, _, validation, _ = hmm.load_returns(data_dir)  # test split is never opened
+    print(f"Reading portfolio_train.csv and portfolio_validation.csv from {DATA_DIR}")
+    train, _, validation, _ = hmm.load_returns(DATA_DIR)  # test split is never opened
 
     train_origins = month_start_dates(train.index)[BURN_IN_MONTHS + 1:]
     val_origins = month_start_dates(validation.index)
@@ -305,18 +296,20 @@ def main():
     print(f"Training signal origins: {len(train_origins)} ({train_origins[0].date()} to {train_origins[-1].date()})")
     print(f"Validation origins: {len(val_origins)} ({val_origins[0].date()} to {val_origins[-1].date()})")
 
-    train_probs = training_signals(hmm, train, train_origins)
     val_probs = validation_signals(val_origins)
+    train_probs = training_signals(hmm, train, train_origins)
     val_probs.to_csv(OUTPUT / "validation_signals.csv", index=False)
 
     metadata = dict(
         created=datetime.now().isoformat(timespec="seconds"),
-        data_dir=str(data_dir), cost_rate=COST_RATE, burn_in_months=BURN_IN_MONTHS,
+        data_dir=str(DATA_DIR), validation_signals_file=str(HMM_VALIDATION_PROBS),
+        cost_rate=COST_RATE, burn_in_months=BURN_IN_MONTHS,
         threshold_grid=list(THRESHOLD_GRID), btc_weight_favorable=BTC_WEIGHT_FAVORABLE,
         training_origins=len(train_origins), validation_origins=len(val_origins),
         training_window=[str(train_window.index[0].date()), str(train_window.index[-1].date())],
         validation_window=[str(validation.index[0].date()), str(validation.index[-1].date())],
-        selection_criterion="training net Sharpe (daily, zero risk-free rate, sqrt(252))",
+        annual_risk_free_rate=ANNUAL_RISK_FREE_RATE, daily_risk_free_rate=DAILY_RISK_FREE_RATE,
+        selection_criterion="annualized Sharpe of daily net excess returns (training)",
         selected_tau={},
     )
 
