@@ -35,7 +35,7 @@ from scipy.optimize import brentq, minimize
 
 # Resolve the consolidated library relative to this file, including direct runs
 # from the Portfolio Optimization folder. No backtest runner is imported.
-_CVAR_DIRECTORY = str(Path(__file__).resolve().parents[1] / "CVaR_MPO")
+_CVAR_DIRECTORY = str(Path(__file__).resolve().parents[1] / "CVaR MPO and Scenarios")
 if _CVAR_DIRECTORY not in sys.path:
     sys.path.insert(0, _CVAR_DIRECTORY)
 from cvar_mpo import (ASSETS, DEFAULT_UPPER, _costs, _limits, _portfolio,
@@ -293,10 +293,11 @@ def _fixed(weights):
 
 
 # name -> (uses BTC cap, settings builder(means, covs, caps) -> solve_mv_plan keyword arguments)
+MATCHED_SHARPE_BASELINE = "Max Sharpe (matched return)"
 BASELINES = {
     "MVO (mean-variance)": (True, lambda means, covs, caps: {"return_reward": 1.}),
     "MVO (min variance)": (True, lambda means, covs, caps: {"return_reward": 0.}),
-    "Max Sharpe (matched return)": (True, lambda means, covs, caps: {
+    MATCHED_SHARPE_BASELINE: (True, lambda means, covs, caps: {
         "return_reward": 0.,
         "min_return": (means*_per_period(lambda m, S: max_sharpe_weights(m, S, caps),
                                          means, covs)).sum(axis=1)-1e-9}),
@@ -332,6 +333,7 @@ def optimize_forecast(bundle, model, pretrade_weights, *, baseline="MVO (mean-va
     its native scenarios, so mean-variance and CVaR plans are built from the
     same forecasts. The CVaR of the chosen weights on those scenarios is
     reported (forecast_var / forecast_cvar) for side-by-side comparison.
+    Pass ``min_return`` to use a precomputed floor for the matched Sharpe baseline.
     """
     if tuple(bundle.assets) != ASSETS:
         raise ValueError("Optimizer requires Equity/Bond/BTC forecast order")
@@ -350,7 +352,10 @@ def optimize_forecast(bundle, model, pretrade_weights, *, baseline="MVO (mean-va
     scenarios = bundle.returns[model][:, :horizon]
     means = np.asarray(bundle.expected_returns[:horizon], float)
     covs = moments_from_scenarios(scenarios)
-    model_settings = builder(means, covs, caps)
+    if baseline == MATCHED_SHARPE_BASELINE and settings.get("min_return") is not None:
+        model_settings = {"return_reward": 0.}
+    else:
+        model_settings = builder(means, covs, caps)
     clash = set(model_settings) & set(settings)
     if clash:
         raise ValueError(f"Settings {sorted(clash)} are fixed by the {baseline} baseline")
