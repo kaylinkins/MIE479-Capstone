@@ -5,6 +5,7 @@ Run from the repository root:
     python "MVO Regime Models/regime_mvo_backtest.py" --model aware
     python "MVO Regime Models/regime_mvo_backtest.py" --model switching
     python "MVO Regime Models/regime_mvo_backtest.py" --horizons 1 3
+    python "MVO Regime Models/regime_mvo_backtest.py" --testing
 
 The two decision models live in their own files (keep all three together):
   regime_aware_mvo.py      Model 1: regime-aware MVO MPO (Max Sharpe MVO and
@@ -13,7 +14,8 @@ The two decision models live in their own files (keep all three together):
                            Sharpe and bear -> Min Var, switching at each stage
 This file only (1) loads the forecasts and realized returns, (2) asks a model
 for weights each month, (3) holds those weights through the real month and
-(4) scores the result. It never reads portfolio_test.csv.
+(4) scores the result. The --testing run uses portfolio_test.csv and the
+shared HMM, tuned Jump and DCC-GARCH test forecast cache.
 
 Consistency with Kaylin's regime-switching CVaR (CVaR Regime Switching/
 run_switching_all_dcc.py and regime_switching_cvar.py)
@@ -548,6 +550,66 @@ def main(selected=("aware", "switching"), horizons=HORIZONS, *,
           "regime_mvo_weights.csv, regime_mvo_daily_returns.csv")
 
 
+def run_testing():
+    """Run the three held-out MVO models with the paired CVaR risk inputs and floors."""
+    sys.path[:0] = [str(ROOT), str(CVAR_DIR), str(ROOT / "CVaR MPO and Scenarios")]
+    from regime_cvar import max_sharpe_reference
+    from run_cvar_mpo import (TEST_FORECAST_NAMES, TEST_RESULTS, load_testing_backtest_inputs,
+                             load_testing_rebalance, write_test_report)
+
+    _, validation, test, history, forecasts = load_testing_backtest_inputs()
+    horizon, btc_cap = 3, BTC_CAPS[0]
+    caps = np.array([1., 1., btc_cap])
+    months = {block.index[0]: block for _, block in test.groupby(test.index.to_period("M"))}
+    last_origin = max(months)
+    sources = {source: {} for source in TEST_FORECAST_NAMES}
+    for origin, block in months.items():
+        opening_date = history.index[history.index < origin][-1]
+        cube, days, probabilities, means = load_testing_rebalance(origin, opening_date, forecasts)
+        if len(block) > days[0] or (origin != last_origin and len(block) != days[0]):
+            raise ValueError(f"{origin.date()}: realized trading days differ from the forecast calendar")
+        for source in sources:
+            reference = max_sharpe_reference(cube, means[source], days, upper=caps,
+                                             annual_risk_free=aware.MAX_SHARPE_ANNUAL_RF)
+            sources[source][origin] = aware.Forecast(means[source], reference.covariances,
+                                                     probabilities[source], days, reference.targets)
+    common_labels = {origin: switching.regime_path(forecast.p_bear, 1)[0]
+                     for origin, forecast in sources["hmm"].items()}
+    decide_aware = next(decide for _, policy, decide in MODELS["aware"] if policy == "Max Sharpe MVO")
+    decide_switching = MODELS["switching"][0][2]
+    models = (
+        ("HMM Regime-Switching MVO", "hmm", decide_switching),
+        ("Jump Regime-Aware MVO", "jump", decide_aware),
+        ("Jump Regime-Switching MVO", "jump", decide_switching),
+    )
+    for model, source, decide in models:
+        inputs = sources[source]
+        net, rows = run_strategy(inputs, months, decide, horizon, caps, {})
+        monthly = pd.DataFrame(rows).rename(columns={"rebalance_date": "origin", "fee": "fee_fraction",
+                                                   "net_month_return": "net_return",
+                                                   "p_bear_month1_end": "bear_signal"})
+        monthly["common_regime"] = monthly.origin.map(common_labels)
+        monthly["complete_month"] = [len(months[origin]) == inputs[origin].days[0] for origin in monthly.origin]
+        monthly["ending_wealth"] = (1 + monthly.net_return).cumprod()
+        monthly["threshold"] = switching.BEAR_THRESHOLD
+        origins = pd.Series(monthly.origin.to_numpy(), index=monthly.origin.dt.to_period("M"))
+        daily = pd.DataFrame({"date": net.index, "net_return": net.to_numpy(),
+                              "origin": net.index.to_period("M").map(origins)})
+        daily["common_regime"] = daily.origin.map(common_labels)
+        policy_note = ("The max-Sharpe return floor applies in forecast bull stages. Forecast bear stages use "
+                       "minimum variance without a return floor." if decide is decide_switching else
+                       "The max-Sharpe return floor applies in all three planning stages.")
+        context = (f"{model} plans three months at each rebalance and executes the first month. "
+                   "Risk uses sample covariances from the same 10,000 DCC-GARCH scenarios per rebalance as CVaR. "
+                   f"The validation settings are a variance weight of {aware.RISK_AVERSION:g}, "
+                   f"a {btc_cap:.0%} Bitcoin cap, and transaction costs of {COST_RATE * 1e4:g} bps per dollar traded. "
+                   f"The shared max-Sharpe return floors use a {aware.MAX_SHARPE_ANNUAL_RF:.0%} annual risk-free rate. "
+                   f"{policy_note}")
+        write_test_report(TEST_RESULTS / model, {model: (daily, monthly)}, {model: btc_cap},
+                          forecast=TEST_FORECAST_NAMES[source], initial_date=validation.index[-1],
+                          model_context=context)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backtest the regime MVO MPO models.")
     parser.add_argument("--model", choices=("aware", "switching", "both"), default="both")
@@ -559,9 +621,14 @@ if __name__ == "__main__":
                         help="completed fixed-policy all-DCC CVaR results")
     parser.add_argument("--cvar-switching-results", type=Path, default=CVAR_SWITCHING_RESULTS,
                         help="completed switching all-DCC CVaR results")
+    parser.add_argument("--testing", action="store_true",
+                        help="run the three held-out DCC-GARCH MVO models at a three-month horizon and 20%% Bitcoin cap")
     args = parser.parse_args()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        main(("aware", "switching") if args.model == "both" else (args.model,),
-             tuple(sorted(set(args.horizons))), forecast_results=args.forecast_results,
-             aware_results=args.cvar_aware_results, switching_results=args.cvar_switching_results)
+        if args.testing:
+            run_testing()
+        else:
+            main(("aware", "switching") if args.model == "both" else (args.model,),
+                 tuple(sorted(set(args.horizons))), forecast_results=args.forecast_results,
+                 aware_results=args.cvar_aware_results, switching_results=args.cvar_switching_results)
