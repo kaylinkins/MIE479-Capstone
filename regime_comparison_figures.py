@@ -23,17 +23,31 @@ def format_dates(ax, *, compact=False):
     ax.spines[["top", "right"]].set_visible(False)
 
 
-def save_paths(paths, output, *, ylabel, formatter, reference):
-    fig = Figure(figsize=(11, 4), facecolor="white")
-    axes = fig.subplots(1, 2, sharex=True, sharey=True)
-    fig.subplots_adjust(left=0.09, right=0.98, bottom=0.20, top=0.88, wspace=0.13)
+def add_figure_heading(fig, title, subtitle):
+    fig.suptitle(title, fontsize=15, fontweight="bold", y=0.975)
+    if subtitle:
+        fig.text(0.5, 0.91, subtitle, ha="center", va="top", fontsize=10, color="#41555e")
+
+
+def save_paths(paths, output, *, ylabel, formatter, reference, styles=STRATEGY_LINES, legend_columns=None,
+               title=None, subtitle=None):
+    height = 4.4 if legend_columns else 4
+    fig = Figure(figsize=(11, height + 0.6 if title else height), facecolor="white")
+    axes = fig.subplots(1, len(paths), sharex=True, sharey=True, squeeze=False)[0]
+    show_forecast_titles = any(paths) and (not title or len(paths) > 1)
+    plot_top = 0.83 if title else (0.88 if show_forecast_titles else 0.96)
+    fig.subplots_adjust(left=0.09, right=0.98, bottom=0.23 if legend_columns else 0.20,
+                        top=plot_top, wspace=0.13)
+    if title:
+        add_figure_heading(fig, title, subtitle)
 
     for ax, (forecast, frame) in zip(axes, paths.items()):
         ax.axhline(reference, color="#9ca8ae", linewidth=0.9, linestyle="-")
         for strategy in frame.columns:
-            color, width = STRATEGY_LINES[strategy]
+            color, width = styles[strategy]
             ax.plot(frame.index, frame[strategy], color=color, linestyle="-", linewidth=width, label=strategy)
-        ax.set_title(f"{forecast} forecasts", fontsize=11, fontweight="bold")
+        if forecast and show_forecast_titles:
+            ax.set_title(f"{forecast} forecasts", fontsize=11, fontweight="bold")
         ax.set_xlim(frame.index[0], frame.index[-1])
         ax.grid(axis="y", color="#e1e7ea", linewidth=0.8, linestyle="-")
         ax.set_axisbelow(True)
@@ -42,32 +56,40 @@ def save_paths(paths, output, *, ylabel, formatter, reference):
     axes[0].set_ylabel(ylabel)
     axes[0].yaxis.set_major_formatter(formatter)
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=len(labels), frameon=False)
+    fig.legend(handles, labels, loc="lower center", ncol=legend_columns or len(labels), frameon=False)
     fig.savefig(output, dpi=220)
 
 
-def save_allocations(allocations, probabilities, end, output):
+def save_allocations(allocations, probabilities, end, output, *, width=None, title=None, subtitle=None):
     strategies = len(next(iter(allocations.values())))
     columns = len(allocations) * strategies
-    fig = Figure(figsize=(5 * strategies + 5, 5.4), facecolor="white")
+    fig = Figure(figsize=(width or (5 * strategies + 5), 6 if title else 5.4), facecolor="white")
     axes = fig.subplots(2, columns, sharex=True, sharey="row",
-                        gridspec_kw={"height_ratios": (2, 1)})
-    fig.subplots_adjust(left=0.075, right=0.98, bottom=0.17, top=0.85, hspace=0.36, wspace=0.13)
+                        gridspec_kw={"height_ratios": (2, 1)}, squeeze=False)
+    left_margin = max(0.075, 0.86 / fig.get_figwidth())
+    show_forecasts = not title or len(allocations) > 1
+    plot_top = 0.8 if title else 0.85
+    fig.subplots_adjust(left=left_margin, right=0.98, bottom=0.17, top=plot_top, hspace=0.36, wspace=0.13)
+    if title:
+        add_figure_heading(fig, title, subtitle)
 
     for i, (forecast, by_strategy) in enumerate(allocations.items()):
         first = strategies * i
-        left = axes[0, first].get_position().x0
-        right = axes[0, first + strategies - 1].get_position().x1
-        fig.text((left + right) / 2, 0.95, f"{forecast} forecasts", ha="center", fontweight="bold")
+        if show_forecasts:
+            left = axes[0, first].get_position().x0
+            right = axes[0, first + strategies - 1].get_position().x1
+            fig.text((left + right) / 2, 0.855 if title else 0.95, f"{forecast} forecasts",
+                     ha="center", fontweight="bold")
         for j, (strategy, weights) in enumerate(by_strategy.items()):
             top, bottom = axes[:, first + j]
-            # Extend the final rebalance through the last validation session.
+            # Extend the final rebalance through the last session.
             plot_dates = weights.index.append(pd.DatetimeIndex([end]))
             plot_weights = np.vstack((weights.to_numpy(), weights.iloc[-1]))
             probability, threshold = probabilities[forecast][strategy]
             top.stackplot(plot_dates, *plot_weights.T, colors=ASSET_COLORS,
                           labels=("Equity", "Bond", "Bitcoin"), step="post", linewidth=0)
-            top.set_title(strategy, fontsize=10)
+            if not title or strategies > 1:
+                top.set_title(strategy, fontsize=10)
             top.set_ylim(0, 1)
             top.set_xlim(plot_dates[0], end)
             if strategy == HEURISTIC:
@@ -90,6 +112,49 @@ def save_allocations(allocations, probabilities, end, output):
     axes[1, 0].set_ylabel("Bear signal")
     fig.legend(*axes[0, 0].get_legend_handles_labels(), loc="lower center", ncol=3, frameon=False)
     fig.savefig(output, dpi=220)
+
+
+def save_testing_paths(runs, *, initial_date, output, forecast=None, subtitle=None):
+    """Draw wealth and drawdown from the same aligned daily net returns."""
+    returns = pd.DataFrame({label: daily.set_index('date').net_return
+                            for label, (daily, _) in runs.items()})
+    if returns.empty or returns.isna().any().any():
+        raise ValueError('All plotted strategies must share the same testing sessions')
+    initial = pd.DataFrame(0., index=[initial_date], columns=returns.columns)
+    wealth = pd.concat([initial, returns]).add(1).cumprod()
+    drawdown = wealth.div(wealth.cummax()).sub(1)
+    colors = ('#176d8a', '#b95623', '#675094', '#367b53', '#a8415e')
+    styles = {label: (color, 1.6) for label, color in zip(runs, colors)}
+    wealth_file, drawdown_file = ('figure_1_cumulative_wealth.png', 'figure_3_drawdowns.png') if forecast else (
+        'comparison_cumulative_wealth.png', 'comparison_drawdowns.png')
+    appearance = dict(styles=styles, legend_columns=None if forecast else 3,
+                      subtitle=subtitle or "Test-period strategy comparison")
+    save_paths({forecast: wealth}, output / wealth_file,
+               ylabel='Portfolio wealth', formatter=StrMethodFormatter('${x:.2f}'), reference=1,
+               title='Cumulative Portfolio Wealth', **appearance)
+    save_paths({forecast: drawdown}, output / drawdown_file,
+               ylabel='Drawdown', formatter=PercentFormatter(1), reference=0,
+               title='Portfolio Drawdowns', **appearance)
+    return wealth.index[-1]
+
+
+def save_testing_figures(runs, *, initial_date, output, forecast, heuristic=False, parameter=None):
+    """Draw the three figures for a model or a parameter sweep."""
+    subtitle = HEURISTIC if heuristic else output.name
+    if parameter:
+        subtitle = f"{output.parent.name} · {parameter}"
+    end = save_testing_paths(runs, initial_date=initial_date, output=output, forecast=forecast, subtitle=subtitle)
+
+    allocations, probabilities = {}, {}
+    for label, (_, monthly) in runs.items():
+        group, strategy = (label, HEURISTIC) if heuristic else (forecast, label)
+        monthly = monthly.set_index('origin')
+        allocations.setdefault(group, {})[strategy] = monthly[list(ASSETS)]
+        probabilities.setdefault(group, {})[strategy] = (monthly.bear_signal, monthly.threshold.iloc[0])
+    width = max(9, 3.25 * len(runs) + 2)
+    save_allocations(allocations, probabilities, end,
+                     output / 'figure_2_portfolio_allocations.png', width=width,
+                     title='Portfolio Allocations Over Time', subtitle=subtitle)
 
 
 def save_comparison_figures(cvar_daily, cvar_monthly, mvo_daily, mvo_monthly, *, initial_date, output,
