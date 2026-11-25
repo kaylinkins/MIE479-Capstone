@@ -28,14 +28,15 @@ def features(returns):
     return pd.concat(columns, axis=1).iloc[60:]
 
 
-def fit_jump(history, seed=0):
+def fit_jump(history, seed=0, *, jump_penalty=None):
     """Fit two persistent states to past features; estimate return moments separately."""
     raw = features(history)
     # Fit clipping/scaling again using ONLY this rebalance's available history.
     center, scale = raw.mean(), raw.std().clip(lower=1e-8)
     clipped = raw.clip(center - 3*scale, center + 3*scale, axis=1)
     X = ((clipped - clipped.mean()) / clipped.std().clip(lower=1e-8)).to_numpy()
-    jm = JumpModel(n_components=2, jump_penalty=JUMP_PENALTY,
+    penalty = JUMP_PENALTY if jump_penalty is None else jump_penalty
+    jm = JumpModel(n_components=2, jump_penalty=penalty,
                    cont=False, n_init=5, max_iter=300, random_state=h.SEED+seed)
     # Minimize squared feature distances plus a penalty for each state change.
     # Historical fitted labels can use all available PAST data, never future returns.
