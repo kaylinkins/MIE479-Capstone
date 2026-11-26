@@ -3,9 +3,9 @@
 Refresh expected_returns.csv in jump_tuned_outputs/. Preserve the saved risk
 and regime inputs. Select settings using training returns only.
 """
-from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 import jump_regime_model as j
 
@@ -16,8 +16,45 @@ OUTPUT = h.HERE / "jump_tuned_outputs"
 
 
 def fit_jump(history, seed=0, *, penalty=50.):
-    """Fit state returns for probability-weighted forecasts."""
-    return j.fit_jump(history, seed, jump_penalty=penalty, mean_prior_days=0.)
+    """Fit the shared Jump features with unpooled regime returns."""
+    raw = j.features(history)
+    center = raw.mean()
+    scale = raw.std().clip(lower=1e-8)
+    clipped = raw.clip(center - 3 * scale, center + 3 * scale, axis=1)
+    features = ((clipped - clipped.mean()) / clipped.std().clip(lower=1e-8)).to_numpy()
+    jump = j.JumpModel(n_components=2, jump_penalty=penalty, cont=False,
+                       n_init=5, max_iter=300, random_state=h.SEED + seed)
+    jump.fit(features, sort_by=None)
+    labels = np.asarray(jump.labels_, dtype=int)
+    current = int(np.asarray(jump.predict_online(features))[-1])
+    returns = history.loc[raw.index].to_numpy()
+
+    # State 1 has the higher equity variance, matching the HMM convention.
+    variances = [returns[labels == s, 0].var() if np.any(labels == s)
+                 else np.inf for s in range(2)]
+    mapping = np.argsort(np.argsort(variances))
+    labels, current = mapping[labels], mapping[current]
+
+    prior = np.diag(history.to_numpy().var(axis=0))
+    means, covariances = [], []
+    for state in range(2):
+        state_returns = returns[labels == state]
+        n = len(state_returns)
+        # Borrow the fitted state's mean if the other state has no observations.
+        mean = (state_returns if n else returns).mean(axis=0)
+        centered = state_returns - mean
+        covariance = (centered.T @ centered + h.SHRINK * prior) / (n + h.SHRINK)
+        means.append(mean)
+        covariances.append(covariance)
+
+    counts = np.ones((2, 2))
+    np.add.at(counts, (labels[:-1], labels[1:]), 1)
+    model = SimpleNamespace(
+        transmat_=counts / counts.sum(axis=1, keepdims=True),
+        means_=np.array(means) * h.SCALE,
+        covars_=np.array(covariances) * h.SCALE**2,
+    )
+    return model, np.eye(2)[current]
 
 
 def select_settings(train, calendar):
@@ -51,15 +88,28 @@ def select_settings(train, calendar):
 
 
 def main():
-    train, returns, validation, _ = h.load_returns(h.HERE)
+    train, returns, validation, assets = h.load_returns(h.HERE)
     calendar = h.make_calendar(returns, validation)
     penalty = select_settings(train, calendar)
-    # Freeze settings before validation; refit using only history at each origin.
+    rows = []
+    origins = validation.groupby(validation.index.to_period("M")).head(1).index
+    for i, date in enumerate(origins):
+        history = returns.loc[returns.index < date]
+        model, p = fit_jump(history, seed=i, penalty=penalty)
+        sessions = h.forecast_sessions(calendar, date)
+        lengths = [len(dates) for dates in sessions]
+        _, means, _ = h.forecast_moments_exact(model, p, lengths)
+        for k, dates in enumerate(sessions):
+            rows.append(dict(rebalance_date=str(date.date()), month_ahead=k + 1,
+                             forecast_month=str(dates[0].to_period("M")),
+                             **dict(zip(assets, means[k]))))
+        print(f"{i + 1}/{len(origins)} {date.date()}: forecasts complete", flush=True)
+
     OUTPUT.mkdir(exist_ok=True)
     with TemporaryDirectory(prefix=".jump-forecast-", dir=OUTPUT.parent) as directory:
-        staged = Path(directory)
-        j.main(fit_model=partial(fit_jump, penalty=penalty), output=staged)
-        (staged / "expected_returns.csv").replace(OUTPUT / "expected_returns.csv")
+        staged = Path(directory) / "expected_returns.csv"
+        j.pd.DataFrame(rows).to_csv(staged, index=False)
+        staged.replace(OUTPUT / "expected_returns.csv")
     print("Updated expected returns in", OUTPUT)
 
 
