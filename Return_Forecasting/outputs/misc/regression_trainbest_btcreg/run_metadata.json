@@ -1,0 +1,18 @@
+{
+  "methods_by_asset": {
+    "Equity": "reg_ar1_recursive_expanding",
+    "Bond": "reg_ar1_expanding",
+    "BTC": "reg_ar1_recursive_expanding"
+  },
+  "btc_rule": "lowest combined RMSE among eligible regressions",
+  "btc_common_training_window_h1_origins": [
+    "2020-03",
+    "2022-01"
+  ],
+  "btc_candidates": [
+    "reg_ar1_expanding",
+    "reg_ar1_recursive_expanding",
+    "reg_mom12_1_expanding"
+  ],
+  "note": "BTC regression scored on the training dates shared by all eligible candidates; Equity/Bond from the module's training scores. portfolio_test.csv not read."
+}

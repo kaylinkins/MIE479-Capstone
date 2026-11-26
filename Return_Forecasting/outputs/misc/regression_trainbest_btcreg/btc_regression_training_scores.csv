@@ -1,0 +1,3 @@
+method,n_h1,n_h2,n_h3,combined_rmse,expanding_mean_rmse_same_dates,skill_vs_expanding
+reg_ar1_recursive_expanding,23,22,21,0.22847615183334927,0.229687505497603,0.005273920588886205
+reg_ar1_expanding,23,22,21,0.2308911855186354,0.229687505497603,-0.005240511530763214
