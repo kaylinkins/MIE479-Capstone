@@ -1,0 +1,23 @@
+{
+  "returns_file": "/Users/elizzy/Downloads/MIE479-Capstone/Return_Forecasting/outputs/walk_forward_validation_expected_returns_h1_h3_regression.csv",
+  "covariance_file": "/Users/elizzy/Downloads/MIE479-Capstone/Covariance_Estimation/outputs/covariances_ewma_lambda_0_93_walk_forward_validation.csv",
+  "return_forecast": "regime-independent AR(1) recursive regression, fixed in advance (not selected)",
+  "return_methods_first_origin": {
+    "method_Equity": "reg_ar1_recursive_expanding",
+    "method_Bond": "reg_ar1_recursive_expanding",
+    "method_BTC": "reg_ar1_recursive_expanding"
+  },
+  "risk_free_annual": 0.04,
+  "risk_free_inside_max_sharpe_targets": true,
+  "planning_horizons": [
+    3
+  ],
+  "cost_rate": 0.001,
+  "btc_cap": 0.2,
+  "mv_risk_aversion": 1.25,
+  "cvar_risk_aversion": 0.5,
+  "cvar_scenarios": "4000 Gaussian, whitened to match forecast mean/covariance, fixed seed 20240601+origin index",
+  "transaction_cost_definition": "sum of self-financing fee fractions incl. initial purchase / (daily obs/252)",
+  "monthly_var": "interpolated 95% loss VaR of compounded calendar-month net returns",
+  "test_set_used": false
+}
