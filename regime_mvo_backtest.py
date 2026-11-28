@@ -554,7 +554,7 @@ def run_testing():
     """Run the three held-out MVO models with the paired CVaR risk inputs and floors."""
     sys.path[:0] = [str(ROOT), str(CVAR_DIR), str(ROOT / "CVaR MPO and Scenarios")]
     from regime_cvar import max_sharpe_reference
-    from run_cvar_mpo import (TEST_FORECAST_NAMES, TEST_RESULTS, load_testing_backtest_inputs,
+    from run_testing_v1 import (TEST_FORECAST_NAMES, TEST_RESULTS, load_testing_backtest_inputs,
                              load_testing_rebalance, write_test_report)
 
     _, validation, test, history, forecasts = load_testing_backtest_inputs()
